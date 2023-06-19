@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM"
+        crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.3.2/html2canvas.min.js"></script>
+
+
+
+    <style>
+        #weather-icon-info img {
+            width: 100px;
+            /* Adjust the width as desired */
+            height: 100px;
+            /* Adjust the height as desired */
+        }
+
+        /* Custom styles */
+        body {
+            background-color: #ffffff;
+            color: #343a40;
+        }
+
+        .navbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+
+        .navbar-nav .nav-link {
+            color: #343a40;
+            border-left: 1px solid #dee2e6;
+            border-right: 1px solid #dee2e6;
+            transition: background-color 0.3s;
+            font-size: 18px;
+            /* Adjust the font size as needed */
+            padding: 10px 25px;
+            /* Adjust the padding as needed */
+            position: relative;
+            /* Add this line */
+        }
+
+        .navbar-nav .nav-link:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: -9px;
+            /* Adjust the position as needed */
+            width: 1px;
+            /* Adjust the width as needed */
+            background-color: #dee2e6;
+        }
+
+        .navbar-nav .nav-link:hover,
+        .navbar-nav .nav-link.active {
+            background-color: #f8f9fa;
+        }
+
+        .navbar-nav .nav-link:hover {
+            background-color: #f8f9fa;
+        }
+
+        .navbar-nav .nav-link:first-child {
+            border-left: none;
+        }
+
+        .navbar-nav .nav-link:last-child {
+            border-right: none;
+        }
+
+        .navbar-nav .nav-link.active {
+            background-color: #f0f0f0;
+        }
+
+        .navbar-nav .nav-link:not(.active):hover {
+            background-color: #f1f1f1;
+        }
+
+        .underline {
+            text-decoration: underline;
+            text-decoration-color: rgb(141, 141, 141);
+            /* Change this to the desired color */
+        }
+
+        #scrollButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            padding: 10px;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            z-index: 9999;
+            border-radius: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        #scrollButton.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="scrollButton">Scroll</button>
+    <nav class="navbar navbar-expand-lg shadow"
+        style="background-image: linear-gradient(to bottom right, #0083B0, #00B4DB); padding-top: 20px; padding-bottom: 20px;">
+        <div class="container-fluid">
+            <a class="navbar-brand ps-3 mx-auto" style="color:#FFFFFF; font-size: 30px;" href="/">Real-Time Flood
+                Monitoring and Road Flood Warning System for Barangay Toclong 2B Imus Cavite</a>
+        </div>
+    </nav>
+
+
+    <!-- Navbar2 -->
+
+    <nav class="navbar navbar-expand-md navbar-light mb-1">
+        <div class="container">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item px-2">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item px-2">
+                        <a class="nav-link active underline" aria-current="page" href="/select-area.html">All</a>
+                    </li>
+                    <li class="nav-item px-2">
+                        <a class="nav-link" href="/toclong2b/board3.html">Toclong II St.</a>
+                    </li>
+                    <li class="nav-item px-2">
+                        <a class="nav-link" href="/toclong2b/board2.html">E.Villanueva Ave.</a>
+                    </li>
+                    <li class="nav-item px-2">
+                        <a class="nav-link" href="/toclong2b/board1.html">Tributary River</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
+
+    <!-- Content -->
+
+    <div class="container-fluid">
+
+        <!-- <div class="container-fluid pb-2">
+            <button type="button" class="btn btn-primary btn-lg" onclick="toggleLEDAndBuzzer()">Toggle LED and
+                Buzzer</button>
+        </div> -->
+        <!-- Board 3 -->
+        <div class="container-fluid">
+
+            <!-- Overview -->
+            <div class="row mt-1 mb-1 justify-content-center">
+                <div class="ps-5 pb-1">
+                    <div class="d-flex justify-content-end">
+                        <h1>Overview</h1>
+                        <span id="timeSpan"
+                            class="badge bg-primary text-white fs-5 d-flex align-items-center justify-content-center ms-auto"></span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-12 col-lg-2"></div>
+                    <div class="col-12 col-lg-8">
+                        <div class="row">
+                            <div class="col col-md-12 col col-lg-4 pe-0">
+                                <div class="card-header text-center" style="height: 70px;">Passable Street</div>
+                                <div class="card rect1 " style="height: 150px;">
+                                    <div class="card-body">
+                                        <h2 class="card-title text-center" id="patv-street" style="font-size: 22px">
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col col-md-12 col col-lg-4 pe-0">
+                                <div class="card-header text-center" style="height: 70px;">Non-Passable for Lightweight
+                                    Vehicles</div>
+                                <div class="card rect1 " style="height: 150px;">
+                                    <div class="card-body">
+                                        <h2 class="card-title text-center" id="nplv-street" style="font-size: 22px">
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col col-md-12 col col-lg-4">
+                                <div class="card-header text-center" style="height: 70px;">Non-Passable for All Types of
+                                    Vehicles</div>
+                                <div class="card rect1 " style="height: 150px;">
+                                    <div class="card-body">
+                                        <h2 class="card-title text-center" id="npatv-street" style="font-size: 22px">
+                                        </h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Map -->
+                        <div class="row">
+                            <div class="col-lg-7 col-12 col pe-1">
+                                <div class="card-header text-center mt-2" style="width: 100%;">Sensor Data's Map (Click
+                                    each
+                                    Marker for more info)</div>
+                                <div class="card rect1" style="width: 100%;">
+                                    <div class="card-body">
+                                        <div id="map" class="" style="height: 500px; width: 100%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-5 col-12 col ps-1">
+                                <div class="card-header text-center mt-2" style="width: 100%;">General Info</div>
+                                <div class="card rect1" style="width: 100%;">
+                                    <div class="card-body text-center">
+                                        <h2 class="card-title text-center" style="font-size: 22px">Generate Report:</h2>
+                                        <button id="download-btn"
+                                            class="btn btn-primary rounded-pill  btn-lg mb-3">Download</button>
+                                        <hr>
+                                        <div class="row">
+                                            <div class="col-12  col-lg-6">
+                                                <h2 class="card-title text-center" style="font-size: 22px">Current
+                                                    Weather:
+                                                </h2>
+                                                <div id="weather-icon-info" class="text-center"></div>
+                                                <h2 class="card-title text-center" id="weather-info"
+                                                    style="font-size: 18px">
+                                                </h2>
+                                            </div>
+                                            <div class="col-12 col-lg-6">
+                                                <h2 class="card-title text-center" style="font-size: 22px">Current Rain
+                                                    Volume:
+                                                </h2>
+                                                <h2 class="card-title text-center" id="rain-info"
+                                                    style="font-size: 17px">
+                                                </h2>
+                                                <hr>
+                                                <h2 class="card-title text-center" style="font-size: 22px">Peak Water
+                                                    Level
+                                                    (Today):
+                                                </h2>
+                                                <h2 class="card-title text-center" id="h2_3" style="font-size: 17px;">
+                                                </h2>
+                                                <h2 class="card-title text-center" id="h2_2" style="font-size: 17px;">
+                                                </h2>
+                                                <h2 class="card-title text-center" id="h2_1" style="font-size: 17px;">
+                                                </h2>
+                                            </div>
+                                            <hr>
+                                            <div class="row">
+                                                <div class="col-12 col-lg-6">
+                                                    <h2 class="card-title text-center " style="font-size: 21px">Last SMS
+                                                        Sent to
+                                                        Officials:
+                                                    </h2>
+
+                                                    <h2 data-bs-toggle="tooltip" data-bs-tooltip="tooltip text"
+                                                        title="BX = Board Num Information LV = NPLV, AV = NPATV"
+                                                        class="card-title text-center" id="lastSMSSentID"
+                                                        style="font-size: 15px">
+                                                    </h2>
+                                                </div>
+                                                <div class="col-12 col-lg-6">
+                                                    <h2 class="card-title text-center" style="font-size: 21px">Add
+                                                        Contact
+                                                        Number:
+                                                    </h2>
+                                                    <form>
+                                                        <div class="input-group mb-3">
+                                                            <input type="text" class="form-control"
+                                                                placeholder="Contact number" aria-label="Contact number"
+                                                                aria-describedby="submit-btn">
+                                                            <button class="btn btn-primary" type="submit"
+                                                                id="submit-btn">Submit</button>
+                                                        </div>
+                                                    </form>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-lg-2">
+
+                        <div class="card rect1 ">
+                            <div class="card-body align-content-center justify-content-center">
+                                <div id="flood-risk-bar" style="height: 150px"></div>
+                                <h5 id="flood-risk-value" class="text-center"></h5>
+                            </div>
+                        </div>
+
+                        <div class="card-header text-center mt-2" style="width: 100%;">Latest Reading</div>
+                        <div class="card rect1" style="width: 100%;">
+                            <div class="card-body">
+                                <div id="recent-data">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+<script src="https://code.highcharts.com/highcharts-more.js"></script>
+<script src="https://code.highcharts.com/modules/solid-gauge.js"></script>
+<script>
+    // Replace with your Firebase project's configuration
+    var firebaseConfig = {
+        apiKey: "AIzaSyCvh_Wg62d3eBKcTC2H1mmti_WGAA_eRC0",
+        authDomain: "the-flood-alert-ph.firebaseapp.com",
+        databaseURL: "https://the-flood-alert-ph-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "the-flood-alert-ph",
+        storageBucket: "the-flood-alert-ph.appspot.com",
+        messagingSenderId: "897766334759",
+        appId: "1:897766334759:web:cae9fa2fe4561221744902"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+
+    // Reference the database
+    var database = firebase.database();
+
+    // convert epochtime to JavaScripte Date object
+    function epochToJsDate(epochTime) {
+        return new Date(epochTime * 1000);
+    }
+
+    // convert time to human-readable format YYYY/MM/DD HH:MM:SS
+    function epochToDateTime(epochTime) {
+        var epochDate = new Date(epochToJsDate(epochTime));
+        var dateTime = epochDate.getFullYear() + "/" +
+            ("00" + (epochDate.getMonth() + 1)).slice(-2) + "/" +
+            ("00" + epochDate.getDate()).slice(-2) + " " +
+            ("00" + epochDate.getHours()).slice(-2) + ":" +
+            ("00" + epochDate.getMinutes()).slice(-2) + ":" +
+            ("00" + epochDate.getSeconds()).slice(-2);
+
+        return dateTime;
+    }
+
+    function fetchWeatherData() {
+        // Replace 'YOUR_API_KEY' with your actual OpenWeather API key
+        const apiKey = '8e041dd412b0ca998f65c56269695ef9';
+        // Replace 'CITY_NAME' with the name of the city you want weather information for
+        const city = 'Imus City';
+
+        // Create the API URL
+        const apiUrl = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`;
+
+        // Make the API request
+        fetch(apiUrl)
+            .then(response => response.json())
+            .then(data => {
+                // Extract the weather condition from the API response
+                // console.log();
+                const weatherIconCode = data.weather[0].icon;
+
+                // Create the HTML element for the weather icon
+                const weatherIconElement = document.createElement('img');
+                weatherIconElement.src = `https://openweathermap.org/img/wn/${weatherIconCode}.png`;
+                weatherIconElement.alt = 'Weather Icon';
+                const weatherCondition = data.weather[0].description;
+                const precipitationRate = data.rain && data.rain['1h'] ? data.rain['1h'] : 0;
+
+                // Update the HTML element with the weather information
+                const weatherInfoElement = document.getElementById('weather-info');
+                weatherInfoElement.innerText = weatherCondition;
+                const rainInfoElement = document.getElementById('rain-info');
+                rainInfoElement.innerText = `Precipitation: ${precipitationRate} mm/h`;
+                const weathericonInfoElement = document.getElementById('weather-icon-info');
+                weathericonInfoElement.appendChild(weatherIconElement);
+            })
+            .catch(error => {
+                // console.error('Error:', error);
+            });
+    }
+
+    // Call the function to fetch weather data
+    fetchWeatherData();
+
+    function updateTime() {
+        var date = new Date();
+        var options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        var dateTimeString = date.toLocaleDateString(undefined, options) + " " + date.toLocaleTimeString();
+        document.getElementById("timeSpan").innerText = dateTimeString;
+    }
+
+
+    // Update the time every second
+    setInterval(updateTime, 1000);
+
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // Code to get data from ESP32
+    // setInterval(function () {
+    //     var xhttp = new XMLHttpRequest();
+    //     xhttp.onreadystatechange = function () {
+    //         if (this.readyState == 4 && this.status == 200) {
+    //             lastSMS = this.responseText;
+    //             // console.log(lastSMS)
+    //             var el1 = document.getElementById("lastSMSSentID");
+    //             if (el1 != null) {
+    //                 el1.innerHTML = lastSMS;
+    //             } else {
+    //                 // console.error("Element with ID 'lastSMS' not found");
+    //             }
+    //         }
+    //     };
+    //     xhttp.open("GET", "/lastSMSSent", true);
+    //     xhttp.send();
+    // }, 2000);
+    // Reference the specific location in your database
+    var uid = 'TPxW3qcPKldbeuZkSYjGJv08PBj2';
+    var dbPath = 'SensorData/' + uid.toString() + '/readings';
+    var mapDataRef = database.ref(dbPath);
+    var obj1DataRef = database.ref(dbPath);
+    var obj2DataRef = database.ref(dbPath);
+    var obj3DataRef = database.ref(dbPath);
+    // var charts = {};
+    var maxPressureObj1 = 0;
+    var maxPressureObj2 = 0;
+    var maxPressureObj3 = 0;
+    var maxPressureArr3 = [];
+    var sensorDataRef = database.ref(dbPath).orderByKey().limitToLast(1);
+    var sensorDataRef1 = database.ref(dbPath).orderByKey();
+    var maxPressure = 0; // Initialize maxPressure
+
+    // Create the chart
+    Highcharts.chart('flood-risk-bar', {
+        chart: {
+            type: "gauge",
+            height: 250
+        },
+        title: {
+            text: "Flood Risk (Today)"
+        },
+        pane: {
+            size: "100%",
+            startAngle: -90,
+            endAngle: 90,
+            background: [
+                {
+
+                    backgroundColor: "white",
+                    innerRadius: "0%",
+                    outerRadius: "0%",
+                    borderWidth: 0
+                }
+            ]
+        },
+        tooltip: {
+            enabled: false
+        },
+        credits: {
+            enabled: false
+        },
+        plotOptions: {
+            gauge: {
+                dataLabels: {
+                    enabled: false
+                },
+                dial: {
+                    baseLength: "0%",
+                    baseWidth: 5,
+                    radius: "90%",
+                    rearLength: "0%",
+                    topWidth: 1
+                }
+            }
+        },
+        yAxis: {
+            lineWidth: 0,
+            tickWidth: 0,
+            tickPositions: [],
+            minorTickInterval: null,
+            min: 0,
+            max: 100,
+            plotBands: [
+                {
+                    from: 40,
+                    to: 150,
+                    color: "red",
+                    thickness: "40%"
+
+                },
+                {
+                    from: 10,
+                    to: 39,
+                    color: "orange",
+                    thickness: "40%"
+                },
+                {
+                    from: 0,
+                    to: 9,
+                    color: "green",
+                    thickness: "40%"
+                }
+            ]
+        },
+        series: [
+            {
+                data: [maxPressure]
+            }
+        ]
+    });
+
+    sensorDataRef.on('child_added', function (snapshot) {
+        var obj = snapshot.toJSON();
+        var objFloatId = obj.boardId;
+        var objid = parseInt(objFloatId);
+        var objbattery = obj.battery;
+        var objhum = obj.humidity;
+        var objreadingid = obj.readingId;
+        var objtemp = obj.temperature;
+        var objtime = obj.timestamp;
+        var objlvl = obj.waterlevel;
+        var objpres = obj.waterlevelpressure;
+        console.log("obj :");
+        console.log(obj);
+        // // Update the values inside the h2 elements
+        // var h2Element1 = document.getElementById("h2_1");
+        // var h2Element2 = document.getElementById("h2_2");
+        // var h2Element3 = document.getElementById("h2_3");
+
+        // // Update h2Element1 with obj 1
+        if (objFloatId === '1.00') {
+            if (objpres > maxPressureObj1) {
+                maxPressureObj1 = objpres;
+            }
+            // h2Element1.innerHTML = "Tributary River: " + maxPressureObj1 + "cm";
+            var timestamp = epochToJsDate(objtime);
+            var pressureData1 = [timestamp.getTime(), objpres];
+
+        }
+
+        // Update h2Element2 with obj 2
+        if (objFloatId === '2.00') {
+            if (objpres > maxPressureObj2) {
+                maxPressureObj2 = objpres;
+            }
+            // h2Element2.innerHTML = "E. Villanueva Ave.: " + maxPressureObj2 + "cm";
+            var timestamp = epochToJsDate(objtime);
+            var pressureData2 = [timestamp.getTime(), objpres];
+        }
+
+        // Update h2Element3 with obj 3
+        if (objFloatId === '3.00') {
+            if (objpres > maxPressureObj3) {
+                maxPressureObj3 = objpres;
+            }
+            // h2Element3.innerHTML = "Toclong II St.: " + maxPressureObj3 + "cm";
+            var timestamp = epochToJsDate(objtime);
+            var pressureData3 = [timestamp.getTime(), objpres];
+
+        }
+
+        // document.getElementById("tm" + objid).innerHTML = epochToDateTime(objtime);
+        // document.getElementById("b" + objid).innerHTML = obj.battery;
+        // document.getElementById("t" + objid).innerHTML = obj.temperature;
+        // document.getElementById("h" + objid).innerHTML = obj.humidity;
+        // document.getElementById("w" + objid).innerHTML = obj.waterlevel;
+        // document.getElementById("p" + objid).innerHTML = obj.waterlevelpressure;
+        maxPressure = Math.max(maxPressureObj1, maxPressureObj2, maxPressureObj3);
+        updateProgressBar();
+    }, false);
+    function appendData(data) {
+        maxPressureArr3[0] = data;
+    }
+    obj1DataRef.orderByChild("boardId").equalTo("1.00").limitToLast(1).on('child_added', function (snapshot) {
+        var obj = snapshot.toJSON();
+        var objFloatId = obj.boardId;
+        var objtime = obj.timestamp;
+        var objid = parseInt(objFloatId);
+        var objpres = obj.waterlevelpressure;
+        console.log("obj :");
+        console.log(obj);
+
+        var waterLevel = objpres;
+        if (waterLevel >= 10 && waterLevel <= 20) {
+            // cardTitle.innerHTML = "NPLV";
+            // cardText.innerHTML = "(Non-Passable for Light Vehicles)";
+            moveColumn(objid, "nplv-street");
+        } else if (waterLevel > 20 && waterLevel <= 150) {
+            // cardTitle.innerHTML = "NPATV";
+            // cardText.innerHTML = "(Non-Passable for All Types of Vehicles)";
+            moveColumn(objid, "npatv-street");
+        } else {
+            // cardTitle.innerHTML = "PATV";
+            // cardText.innerHTML = "(Passable for All Types of Vehicles)";
+            moveColumn(objid, "patv-street");
+        }
+
+        var h2Element1 = document.getElementById("h2_1");
+        if (objpres > maxPressureObj1) {
+            maxPressureObj1 = objpres;
+        }
+        h2Element1.innerHTML = "Tributary River: " + maxPressureObj1 + "cm";
+        var timestamp = epochToJsDate(objtime);
+        var pressureData1 = [timestamp.getTime(), objpres];
+        // rest of the code
+    });
+    obj2DataRef.orderByChild("boardId").equalTo("2.00").limitToLast(1).on('child_added', function (snapshot) {
+        var obj = snapshot.toJSON();
+        var objFloatId = obj.boardId;
+        var objtime = obj.timestamp;
+        var objid = parseInt(objFloatId);
+        var objpres = obj.waterlevelpressure;
+        console.log("obj :");
+        console.log(obj);
+
+        var waterLevel = objpres;
+        if (waterLevel >= 10 && waterLevel <= 20) {
+            // cardTitle.innerHTML = "NPLV";
+            // cardText.innerHTML = "(Non-Passable for Light Vehicles)";
+            moveColumn(objid, "nplv-street");
+        } else if (waterLevel > 20 && waterLevel <= 150) {
+            // cardTitle.innerHTML = "NPATV";
+            // cardText.innerHTML = "(Non-Passable for All Types of Vehicles)";
+            moveColumn(objid, "npatv-street");
+        } else {
+            // cardTitle.innerHTML = "PATV";
+            // cardText.innerHTML = "(Passable for All Types of Vehicles)";
+            moveColumn(objid, "patv-street");
+        }
+        var h2Element2 = document.getElementById("h2_2");
+        if (objpres > maxPressureObj2) {
+            maxPressureObj2 = objpres;
+        }
+        h2Element2.innerHTML = "E. Villanueva Ave.: " + maxPressureObj2 + "cm";
+        var timestamp = epochToJsDate(objtime);
+        var pressureData2 = [timestamp.getTime(), objpres];
+        // rest of the code
+    });
+    obj3DataRef.orderByChild("boardId").equalTo("3.00").limitToLast(1).on('child_added', function (snapshot) {
+        var obj = snapshot.toJSON();
+        var objFloatId = obj.boardId;
+        var objid = parseInt(objFloatId);
+        var objtime = obj.timestamp;
+        var objpres = obj.waterlevelpressure;
+        console.log("obj :");
+        console.log(obj);
+
+        var waterLevel = objpres;
+        if (waterLevel >= 10 && waterLevel <= 20) {
+            // cardTitle.innerHTML = "NPLV";
+            // cardText.innerHTML = "(Non-Passable for Light Vehicles)";
+            moveColumn(objid, "nplv-street");
+        } else if (waterLevel > 20 && waterLevel <= 150) {
+            // cardTitle.innerHTML = "NPATV";
+            // cardText.innerHTML = "(Non-Passable for All Types of Vehicles)";
+            moveColumn(objid, "npatv-street");
+        } else {
+            // cardTitle.innerHTML = "PATV";
+            // cardText.innerHTML = "(Passable for All Types of Vehicles)";
+            moveColumn(objid, "patv-street");
+        }
+        var h2Element3 = document.getElementById("h2_3");
+        if (objpres > maxPressureObj3) {
+            maxPressureObj3 = objpres;
+            console.log("objpres: ", objpres);
+            appendData(objpres);
+        }
+        h2Element3.innerHTML = "Toclong II St.: " + maxPressureObj3 + "cm";
+        var timestamp = epochToJsDate(objtime);
+        var pressureData3 = [timestamp.getTime(), objpres];
+        // rest of the code
+    });
+    console.log("maxPressureObj1", maxPressureObj1);
+    console.log("maxPressureObj2", maxPressureObj2);
+    console.log("maxPressureObj3", maxPressureObj3);
+    var recentDataDiv = document.getElementById('recent-data');
+    sensorDataRef1.limitToLast(5).on('child_added', function (snapshot) {
+        var obj = snapshot.val();
+        var objFloatId = obj.boardId;
+        var objid = parseInt(objFloatId);
+        var objbattery = obj.battery;
+        var objhum = obj.humidity;
+        var objreadingid = obj.readingId;
+        var objtemp = obj.temperature;
+        var objtime = obj.timestamp;
+        var objlvl = obj.waterlevel;
+        var objpres = obj.waterlevelpressure;
+
+        // Create the card and card-body elements
+
+        // Format the ID value with specific text based on cases
+        var idText;
+        switch (objid) {
+            case 1:
+                idText = "Tribunary River";
+                break;
+            case 2:
+                idText = "E. Villanueva Ave.";
+                break;
+            case 3:
+                idText = "Toclong II St.";
+                break;
+            default:
+                idText = "Unknown";
+        }
+
+        // Create the card and card-body elements
+        var card = document.createElement('div');
+        card.className = 'card';
+
+        var cardBody = document.createElement('div');
+        cardBody.className = 'card-body';
+
+        // Create a <p> element to display the field data
+        var fieldData = document.createElement('p');
+        fieldData.textContent = "ID: " + idText + ", Battery: " + objbattery + ", Humidity: " + objhum + ", Temperature: " + objtemp + ", Water Level: " + objlvl + ", Pressure: " + objpres;
+
+        // Append the field data to the card-body
+        cardBody.appendChild(fieldData);
+
+        // Append the card-body to the card
+        card.appendChild(cardBody);
+
+        // Append the card to the recent data div
+        recentDataDiv.appendChild(card);
+    });
+    function updateProgressBar() {
+        // Update the chart series data
+        var chart = Highcharts.charts[0]; // Get the reference to the chart
+        if (chart) {
+            var series = chart.series[0]; // Get the reference to the series
+            series.update({
+                data: [maxPressure]
+            }, true);
+        }
+
+        if (maxPressure >= 10 && maxPressure <= 40) {
+            var floodRiskValue = document.getElementById("flood-risk-value");
+            floodRiskValue.innerHTML = "Warning";
+        } else if (maxPressure > 40 && maxPressure <= 150) {
+            var floodRiskValue = document.getElementById("flood-risk-value");
+            floodRiskValue.innerHTML = "Danger";
+
+        } else {
+            var floodRiskValue = document.getElementById("flood-risk-value");
+            floodRiskValue.innerHTML = "Safe";
+        }
+
+    }
+    function moveColumn(id, targetColumn) {
+        var column = document.getElementById(targetColumn);
+        var name = getNameById(id);
+        var idText = "<p>" + name + "</p>";
+
+        if (!column.innerHTML.includes(idText)) {
+            column.innerHTML += idText;
+        }
+
+        var otherColumns = ["patv-street", "nplv-street", "npatv-street"];
+        for (var i = 0; i < otherColumns.length; i++) {
+            if (otherColumns[i] !== targetColumn) {
+                var otherColumn = document.getElementById(otherColumns[i]);
+                otherColumn.innerHTML = otherColumn.innerHTML.replace(idText, "");
+            }
+        }
+    }
+
+    function getNameById(id) {
+        switch (id) {
+            case 1:
+                return "Tribunary River";
+            case 2:
+                return "E. Villanueva Ave.";
+            case 3:
+                return "Toclong II St.";
+            default:
+                return "Unknown";
+        }
+    }
+
+    function resetVariables() {
+        maxPressureObj1 = 0;
+        maxPressureObj2 = 0;
+        maxPressureObj3 = 0;
+    }
+    var storedInterval = localStorage.getItem('timerInterval');
+    // di pa nagana yung maxpressobj1 2 3 dahil di pa maayos yung maxpress dahil di nya makuha yung mga value ng maxojb1 2 3 dahil nakaencapsulate sa function
+    if (storedInterval) {
+        // If the interval is stored, resume the timer using the stored interval
+        var timer = setInterval(resetVariables, storedInterval);
+    } else {
+        // If the interval is not stored, set the initial timer and store the interval in local storage
+        var timer = setInterval(resetVariables, 5 * 60 * 1000); // 5 minutes (5 * 60 seconds * 1000 milliseconds)
+        localStorage.setItem('timerInterval', 5 * 60 * 1000);
+    }
+    window.addEventListener('beforeunload', function () {
+        // Store the timer interval in local storage before the page is refreshed
+        localStorage.setItem('timerInterval', 5 * 60 * 1000);
+    });
+
+
+    // Function to handle button click and update chart's time range
+    // function handleButtonClick(buttonId, chart) {
+    //     var timeRange = 1; // Default time range in hours
+    //     if (buttonId === '6h-button') {
+    //         timeRange = 6;
+    //     } else if (buttonId === '12h-button') {
+    //         timeRange = 12;
+    //     } else if (buttonId === '1d-button') {
+    //         timeRange = 24;
+    //     }
+
+    //     // Calculate the start time based on the time range
+    //     var currentTime = new Date().getTime();
+    //     var startTime = currentTime - (timeRange * 60 * 60 * 1000);
+
+    //     // Update the chart's x-axis extremes
+    //     chart.xAxis[0].setExtremes(startTime, currentTime);
+    // }
+
+    // Button click event handlers
+    // document.getElementById('1h-button').addEventListener('click', function () {
+    //     handleButtonClick('1h-button', chartP1);
+    //     handleButtonClick('1h-button', chartP2);
+    //     handleButtonClick('1h-button', chartP3);
+    // });
+
+    // document.getElementById('6h-button').addEventListener('click', function () {
+    //     handleButtonClick('6h-button', chartP1);
+    //     handleButtonClick('6h-button', chartP2);
+    //     handleButtonClick('6h-button', chartP3);
+    // });
+
+    // document.getElementById('12h-button').addEventListener('click', function () {
+    //     handleButtonClick('12h-button', chartP1);
+    //     handleButtonClick('12h-button', chartP2);
+    //     handleButtonClick('12h-button', chartP3);
+    // });
+
+    // document.getElementById('1d-button').addEventListener('click', function () {
+    //     handleButtonClick('1d-button', chartP1);
+    //     handleButtonClick('1d-button', chartP2);
+    //     handleButtonClick('1d-button', chartP3);
+    // });
+    // Initialize chartP1
+    // var chartP1 = new Highcharts.Chart({
+    //     chart: { renderTo: 'chart-pressure1' },
+    //     title: { text: 'Water Level (Pressure)' },
+    //     series: [{
+    //         showInLegend: false,
+    //         data: []
+    //     }],
+    //     plotOptions: {
+    //         line: {
+    //             animation: false,
+    //             dataLabels: { enabled: true }
+    //         },
+    //         series: { color: '#18009c' }
+    //     },
+    //     xAxis: {
+    //         type: 'datetime',
+    //         dateTimeLabelFormats: { second: '%H:%M:%S' }
+    //     },
+    //     yAxis: {
+    //         title: { text: 'Measured through Pressure (cm)' },
+    //         min: 0,   // Minimum value for the Y-axis
+    //         max: 150  // Maximum value for the Y-axis
+    //     },
+    //     credits: { enabled: false }
+    // });
+
+    // // Store chartP1 instance in the charts object
+    // charts['1_chart'] = chartP1;
+
+    // // Initialize chartP2
+    // var chartP2 = new Highcharts.Chart({
+    //     chart: { renderTo: 'chart-pressure2' },
+    //     title: { text: 'Water Level (Pressure)' },
+    //     series: [{
+    //         showInLegend: false,
+    //         data: []
+    //     }],
+    //     plotOptions: {
+    //         line: {
+    //             animation: false,
+    //             dataLabels: { enabled: true }
+    //         },
+    //         series: { color: '#18009c' }
+    //     },
+    //     xAxis: {
+    //         type: 'datetime',
+    //         dateTimeLabelFormats: { second: '%H:%M:%S' }
+    //     },
+    //     yAxis: {
+    //         title: { text: 'Measured through Pressure (cm)' },
+    //         min: 0,   // Minimum value for the Y-axis
+    //         max: 150  // Maximum value for the Y-axis
+    //     },
+    //     credits: { enabled: false }
+    // });
+
+    // // Store chartP2 instance in the charts object
+    // charts['2_chart'] = chartP2;
+
+    // // Initialize chartP3
+    // var chartP3 = new Highcharts.Chart({
+    //     chart: { renderTo: 'chart-pressure3' },
+    //     title: { text: 'Water Level (Pressure)' },
+    //     series: [{
+    //         showInLegend: false,
+    //         data: []
+    //     }],
+    //     plotOptions: {
+    //         line: {
+    //             animation: false,
+    //             dataLabels: { enabled: true }
+    //         },
+    //         series: { color: '#18009c' }
+    //     },
+    //     xAxis: {
+    //         type: 'datetime',
+    //         dateTimeLabelFormats: { second: '%H:%M:%S' }
+    //     },
+    //     yAxis: {
+    //         title: { text: 'Measured through Pressure (cm)' },
+    //         min: 0,   // Minimum value for the Y-axis
+    //         max: 150  // Maximum value for the Y-axis
+    //     },
+    //     credits: { enabled: false }
+    // });
+
+    // // Store chartP3 instance in the charts object
+    // charts['3_chart'] = chartP3;
+
+    // // Get the button element
+    // var scrollButton = document.getElementById("scrollButton");
+
+    // // Add a click event listener to the button
+    // scrollButton.addEventListener("click", function () {
+    //     if (window.scrollY === 0) {
+    //         // Scroll to the top of the page instantly
+    //         window.scrollTo(0, 0);
+    //     } else {
+    //         // Scroll to the top of the page smoothly
+    //         window.scrollTo({ top: 0, behavior: "smooth" });
+    //     }
+    // });
+
+    // Show or hide the button based on scroll position
+    window.addEventListener("scroll", function () {
+        var scrollButtonPosition = document.documentElement.scrollHeight - window.innerHeight;
+        if (window.scrollY > 10 && window.scrollY < scrollButtonPosition) {
+            scrollButton.classList.add("show");
+        } else {
+            scrollButton.classList.remove("show");
+        }
+    });
+
+    function initMap() {
+        var sensorData = ""; // Define sensorData variable outside of the event listener
+        var sensorMarkers = []; // Array to store sensor markers
+        var rangeCircle;
+
+        var infowindow = new google.maps.InfoWindow(); // Declare the infowindow variable outside the event listener
+
+        // 14.439936351437355, 120.92957111829418
+        // 14.439817922996339, 120.92960169120573
+        var map = new google.maps.Map(document.getElementById("map"), {
+            center: { lat: 14.439817922996339, lng: 120.92960169120573 }, // Target coordinates
+            zoom: 17, // Zoom level
+            styles: [{
+                featureType: 'poi',
+                stylers: [{ visibility: 'off' }] // Hide Points of Interest (POI) markers
+            }
+                // Add more style rules as needed to customize the map appearance
+            ]
+        });
+
+        // Function to create a sensor marker
+        function createSensorMarker(sensorLatLng, title, sensorId, rangeRadius, initialColor) {
+            var marker = new google.maps.Marker({
+                position: sensorLatLng,
+                map: map,
+                title: title,
+                animation: google.maps.Animation.DROP,
+                label: {
+                    text: title,
+                    color: '#404040',
+                    fontWeight: 'bold',
+                    labelOrigin: new google.maps.Point(0, 32)
+                }
+            });
+
+            var rangeCircle = new google.maps.Circle({
+                strokeColor: "gray",
+                strokeOpacity: 0.8,
+                fillColor: initialColor,
+                strokeWeight: 2,
+                fillColor: "green",
+                fillOpacity: 0.35,
+                center: sensorLatLng,
+                radius: rangeRadius,
+                map: map
+            });
+
+            marker.addListener("click", function () {
+                var sensorData = sensorMarkers[sensorId].data;
+                var infowindow = new google.maps.InfoWindow({
+                    content: "Sensor ID: " + sensorId +
+                        "<br>Water Level: " + sensorData.waterlevel +
+                        "<br>Pressure: " + sensorData.pressure +
+                        "<br>Temperature: " + sensorData.temperature +
+                        "<br>Humidity: " + sensorData.humidity +
+                        "<br>Battery Level: " + sensorData.batteryLevel + "%"
+                });
+                infowindow.open(map, marker);
+            });
+
+            sensorMarkers[sensorId] = { marker: marker, rangeCircle: rangeCircle, data: {} };
+        }
+
+        // Create the first sensor marker
+        var sensor1LatLng = { lat: 14.440703903499237, lng: 120.92957878388968 }; // Replace with actual sensor location
+        createSensorMarker(sensor1LatLng, "Toclong II St.", 3, 85, "green");
+
+        // Create the second sensor marker
+        var sensor2LatLng = { lat: 14.438773, lng: 120.929984 }; // Replace with actual sensor location
+        createSensorMarker(sensor2LatLng, "E. Villanueva Ave.", 2, 85, "green");
+
+        // Create the third sensor marker
+        var sensor3LatLng = { lat: 14.440837, lng: 120.930466 }; // Replace with actual sensor location
+        createSensorMarker(sensor3LatLng, "Tributary River", 1, 50, "green");
+
+        function updateRangeCircle(centerLatLng, radius) {
+            if (rangeCircle) {
+                rangeCircle.setMap(null); // Remove the existing range circle
+            }
+            rangeCircle = new google.maps.Circle({
+                strokeColor: "gray",
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                fillColor: "green",
+                fillOpacity: 0.35,
+                center: centerLatLng,
+                radius: radius,
+                map: map
+            });
+        }
+
+        obj3DataRef.orderByChild("boardId").equalTo("3.00").limitToLast(1).on('child_added', function (snapshot) {
+
+            // console.log("new_readings", e.data);
+            var obj = snapshot.toJSON();
+            var objFloatId = obj.boardId;
+            var objid = parseInt(objFloatId);
+            var objbattery = obj.battery;
+            var objhum = obj.humidity;
+            var objreadingid = obj.readingId;
+            var objtemp = obj.temperature;
+            var objtime = obj.timestamp;
+            var objlvl = obj.waterlevel;
+            var objpres = obj.waterlevelpressure;
+            if (objid === 3) {
+                sensorMarkers[3].data = {
+                    waterlevel: obj.waterlevel,
+                    pressure: objpres,
+                    temperature: obj.temperature,
+                    humidity: obj.humidity,
+                    batteryLevel: obj.battery
+                };
+                // Update the range circle color based on the water level for sensor 3
+                if (objpres >= 10 && objpres <= 15) {
+                    sensorMarkers[3].rangeCircle.setOptions({ fillColor: "orange" });
+                } else if (objpres > 15 && objpres <= 200) {
+                    sensorMarkers[3].rangeCircle.setOptions({ fillColor: "red" });
+                } else {
+                    sensorMarkers[3].rangeCircle.setOptions({ fillColor: "green" });
+                }
+            }
+        }, false);
+        obj2DataRef.orderByChild("boardId").equalTo("2.00").limitToLast(1).on('child_added', function (snapshot) {
+
+            // console.log("new_readings", e.data);
+            var obj = snapshot.toJSON();
+            var objFloatId = obj.boardId;
+            var objid = parseInt(objFloatId);
+            var objbattery = obj.battery;
+            var objhum = obj.humidity;
+            var objreadingid = obj.readingId;
+            var objtemp = obj.temperature;
+            var objtime = obj.timestamp;
+            var objlvl = obj.waterlevel;
+            var objpres = obj.waterlevelpressure;
+            if (objid === 2) {
+                sensorMarkers[2].data = {
+                    waterlevel: obj.waterlevel,
+                    pressure: objpres,
+                    temperature: obj.temperature,
+                    humidity: obj.humidity,
+                    batteryLevel: obj.battery
+                };
+                // Update the range circle color based on the water level for sensor 2
+                if (objpres >= 10 && objpres <= 15) {
+                    sensorMarkers[2].rangeCircle.setOptions({ fillColor: "orange" });
+                } else if (objpres > 15 && objpres <= 200) {
+                    sensorMarkers[2].rangeCircle.setOptions({ fillColor: "red" });
+                } else {
+                    sensorMarkers[2].rangeCircle.setOptions({ fillColor: "green" });
+                }
+            }
+        }, false);
+        obj1DataRef.orderByChild("boardId").equalTo("1.00").limitToLast(1).on('child_added', function (snapshot) {
+            // console.log("new_readings", e.data);
+            var obj = snapshot.toJSON();
+            var objFloatId = obj.boardId;
+            var objid = parseInt(objFloatId);
+            var objbattery = obj.battery;
+            var objhum = obj.humidity;
+            var objreadingid = obj.readingId;
+            var objtemp = obj.temperature;
+            var objtime = obj.timestamp;
+            var objlvl = obj.waterlevel;
+            var objpres = obj.waterlevelpressure;
+            if (objid === 1) {
+
+                sensorMarkers[1].data = {
+                    waterlevel: obj.waterlevel,
+                    pressure: obj.waterlevelpressure,
+                    temperature: obj.temperature,
+                    humidity: obj.humidity,
+                    batteryLevel: obj.battery
+                };
+
+                // Update the range circle color based on the water level for sensor 1
+                if (objpres >= 10 && objpres <= 15) {
+                    sensorMarkers[1].rangeCircle.setOptions({ fillColor: "orange" });
+                } else if (objpres > 15 && objpres <= 200) {
+                    sensorMarkers[1].rangeCircle.setOptions({ fillColor: "red" });
+                } else {
+                    sensorMarkers[1].rangeCircle.setOptions({ fillColor: "green" });
+                }
+            }
+        }, false);
+
+    }
+
+    window.jsPDF = window.jspdf.jsPDF
+    // Event listener for the download button
+    // Event listener for the download button
+    document.getElementById('download-btn').addEventListener('click', function () {
+        // Capture the web page using html2canvas
+        html2canvas(document.body, {
+            scrollY: -window.scrollY, // Capture the entire page by scrolling
+            windowWidth: document.documentElement.offsetWidth, // Set the width of the captured screenshot
+            windowHeight: document.documentElement.offsetHeight, // Set the height of the captured screenshot
+            useCORS: true // Enable CORS to capture images from external sources
+        }).then(function (canvas) {
+            var imgData = canvas.toDataURL('image/png');
+            var doc = new jsPDF('landscape'); // Set the orientation to landscape
+            var pdfWidth = doc.internal.pageSize.getWidth();
+            var pdfHeight = doc.internal.pageSize.getHeight();
+            var imgHeight = (canvas.height * pdfWidth) / canvas.width;
+            var remainingHeight = imgHeight;
+
+            var pageHeight = pdfHeight - 20; // Adjust the margin to suit your needs
+
+            // Calculate the number of required pages
+            var numPages = Math.ceil(imgHeight / pageHeight);
+
+            for (var pageNumber = 0; pageNumber < numPages; pageNumber++) {
+                if (pageNumber > 0) {
+                    doc.addPage();
+                }
+                var heightPosition = -pageNumber * pageHeight;
+                doc.addImage(imgData, 'PNG', 0, heightPosition, pdfWidth, imgHeight, null, 'FAST');
+            }
+
+            // Generate a unique name for the PDF file using the current date and time
+            var now = new Date();
+            var fileName = 'FLOOD-ALERT-ALL-REPORT_' + now.toLocaleDateString().replace(/\//g, '-') + '_' + now.toLocaleTimeString().replace(/:/g, '');
+
+            // Download the PDF with the generated file name
+            doc.save(fileName + '.pdf');
+        });
+    });
+
+
+</script>
+<script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD9Yl-XO2UD9hiHg3plAWRcqUc9DU-fbFs&callback=initMap"></script>
+
+</html>
