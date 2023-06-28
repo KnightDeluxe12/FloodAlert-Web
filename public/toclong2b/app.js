@@ -219,24 +219,24 @@ async function createHistoricalChart() {
 }
 
 // Call the function to create the chart
-createHistoricalChart();
-window.onload = function() {
+
+window.onload = function () {
   // Create the initial chart
   createHistoricalChart();
   // Add event listeners to toggle the visibility of series
-  document.getElementById("toggleBoard1").addEventListener("change", function(e) {
+  document.getElementById("toggleBoard1").addEventListener("change", function (e) {
     historyChart.series[0].setVisible(e.target.checked, false);
     historyChart.redraw();
   });
-  document.getElementById("toggleBoard2").addEventListener("change", function(e) {
+  document.getElementById("toggleBoard2").addEventListener("change", function (e) {
     historyChart.series[1].setVisible(e.target.checked, false);
     historyChart.redraw();
   });
-  document.getElementById("toggleBoard3").addEventListener("change", function(e) {
+  document.getElementById("toggleBoard3").addEventListener("change", function (e) {
     historyChart.series[2].setVisible(e.target.checked, false);
     historyChart.redraw();
   });
-  document.getElementById("toggleFloodRisk").addEventListener("change", function(e) {
+  document.getElementById("toggleFloodRisk").addEventListener("change", function (e) {
     historyChart.series[3].setVisible(e.target.checked, false);
     historyChart.redraw();
   });
@@ -249,165 +249,124 @@ function setTimeRange(hours) {
   historyChart.xAxis[0].setExtremes(minTime, maxTime);
 }
 function setLast50Readings() {
-var allDataPoints = [];
+  var allDataPoints = [];
 
-// Gather all data points from all series
-historyChart.series.forEach(function (series) {
+  // Gather all data points from all series
+  historyChart.series.forEach(function (series) {
     allDataPoints = allDataPoints.concat(series.data);
-});
+  });
 
-// Sort all data points by x (timestamp) in descending order
-allDataPoints.sort(function (a, b) {
+  // Sort all data points by x (timestamp) in descending order
+  allDataPoints.sort(function (a, b) {
     return b.x - a.x;
-});
+  });
 
-// Get the timestamp of the 50th last reading, if available
-var minTime = allDataPoints.length >= 50 ? allDataPoints[49].x : allDataPoints[allDataPoints.length - 1].x;
-var maxTime = allDataPoints[0].x;
+  // Get the timestamp of the 50th last reading, if available
+  var minTime = allDataPoints.length >= 50 ? allDataPoints[49].x : allDataPoints[allDataPoints.length - 1].x;
+  var maxTime = allDataPoints[0].x;
 
-// Update the x-axis range
-historyChart.xAxis[0].setExtremes(minTime, maxTime);
+  // Update the x-axis range
+  historyChart.xAxis[0].setExtremes(minTime, maxTime);
 }
 
-floodRiskDataRef.on('child_added', function (snapshot) {
-  var obj = snapshot.toJSON();
-  var objtime = obj.timestamp;
-  var objfr = Number(obj.floodriskvalue);
-  console.log("objtime :", objtime);
-  console.log("objfr :", objfr);
-  // Create the chart
-  if ((objtime * 1000) >= oneHourAgo) {
-    objfr = objfr;
-  } else {
-    objfr = 0;
-  }
-  Highcharts.chart('flood-risk-bar', {
-    chart: {
-      type: "gauge",
-      height: 250
-    },
-    title: {
-      text: "Flood Risk (Today)"
-    },
-    pane: {
-      size: "100%",
-      startAngle: -90,
-      endAngle: 90,
-      background: [
-        {
+// floodRiskDataRef.on('child_added', function (snapshot) {
+//   var obj = snapshot.toJSON();
+//   var objtime = obj.timestamp;
+//   var objfr = Number(obj.floodriskvalue);
+//   console.log("objtime :", objtime);
+//   console.log("objfr :", objfr);
+//   // Create the chart
+//   if ((objtime * 1000) >= oneHourAgo) {
+//     objfr = objfr;
+//   } else {
+//     objfr = 0;
+//   }
+//   Highcharts.chart('flood-risk-bar', {
+//     chart: {
+//       type: "gauge",
+//       height: 250
+//     },
+//     title: {
+//       text: "Flood Risk (Today)"
+//     },
+//     pane: {
+//       size: "100%",
+//       startAngle: -90,
+//       endAngle: 90,
+//       background: [
+//         {
 
-          backgroundColor: "white",
-          innerRadius: "0%",
-          outerRadius: "0%",
-          borderWidth: 0
-        }
-      ]
-    },
-    tooltip: {
-      enabled: false
-    },
-    credits: {
-      enabled: false
-    },
-    plotOptions: {
-      gauge: {
-        dataLabels: {
-          enabled: false
-        },
-        dial: {
-          baseLength: "0%",
-          baseWidth: 5,
-          radius: "90%",
-          rearLength: "0%",
-          topWidth: 1
-        }
-      }
-    },
-    yAxis: {
-      lineWidth: 0,
-      tickWidth: 0,
-      tickPositions: [],
-      minorTickInterval: null,
-      min: 0,
-      max: 100,
-      plotBands: [
-        {
-          from: 67,
-          to: 100,
-          color: "red",
-          thickness: "40%"
+//           backgroundColor: "white",
+//           innerRadius: "0%",
+//           outerRadius: "0%",
+//           borderWidth: 0
+//         }
+//       ]
+//     },
+//     tooltip: {
+//       enabled: false
+//     },
+//     credits: {
+//       enabled: false
+//     },
+//     plotOptions: {
+//       gauge: {
+//         dataLabels: {
+//           enabled: false
+//         },
+//         dial: {
+//           baseLength: "0%",
+//           baseWidth: 5,
+//           radius: "90%",
+//           rearLength: "0%",
+//           topWidth: 1
+//         }
+//       }
+//     },
+//     yAxis: {
+//       lineWidth: 0,
+//       tickWidth: 0,
+//       tickPositions: [],
+//       minorTickInterval: null,
+//       min: 0,
+//       max: 100,
+//       plotBands: [
+//         {
+//           from: 67,
+//           to: 100,
+//           color: "red",
+//           thickness: "40%"
 
-        },
-        {
-          from: 33,
-          to: 66,
-          color: "orange",
-          thickness: "40%"
-        },
-        {
-          from: 0,
-          to: 32,
-          color: "green",
-          thickness: "40%"
-        }
-      ]
-    },
-    series: [
-      {
-        data: [objfr]
-      }
-    ]
-  });
-  updateProgressBar(objfr, objtime);
-}, false);
-floodRiskDataRef1.limitToLast(5).on('child_added', function (snapshot) {
-  var recentFloodDataDiv = document.getElementById('recent-data-flood');
-  var obj = snapshot.val();
-  var objfr = Number(obj.floodriskvalue);
-  var objtime = obj.timestamp;
+//         },
+//         {
+//           from: 33,
+//           to: 66,
+//           color: "orange",
+//           thickness: "40%"
+//         },
+//         {
+//           from: 0,
+//           to: 32,
+//           color: "green",
+//           thickness: "40%"
+//         }
+//       ]
+//     },
+//     series: [
+//       {
+//         data: [objfr]
+//       }
+//     ]
+//   });
+//   updateProgressBar(objfr, objtime);
+// }, false);
 
-  // Create the card and card-body elements
-  var card = document.createElement('div');
-  card.className = 'card';
-
-  var cardBody = document.createElement('div');
-  cardBody.className = 'card-body';
-
-  // Create a <p> element to display the field data
-  // Create a <div> element to contain the field data
-  var fieldData = document.createElement('div');
-
-  // Create a <span> element for each data field
-  var objfrSpan = createBadgeSpan("FloodRiskValue: " + objfr);
-  var objtimeSpan = createBadgeSpan("Time: " + epochToDateTime(objtime));
-
-  // Function to create a <span> element with Bootstrap badge
-  function createBadgeSpan(text) {
-    var span = document.createElement('span');
-    span.className = 'badge bg-success me-1';
-    span.textContent = text;
-    return span;
-  }
-
-  fieldData.appendChild(objfrSpan);
-  fieldData.appendChild(objtimeSpan);
-  // Append the field data to the card-body
-
-  cardBody.appendChild(fieldData);
-  // Append the card-body to the card
-  card.appendChild(cardBody);
-
-  // Append the card to the recent data div
-  recentFloodDataDiv.prepend(card);
-  recentFloodDataDiv.style.maxHeight = '200px'; // Adjust the desired height here
-  recentFloodDataDiv.style.overflowY = 'auto';
-});
 function objDataChanges(id) {
   var dbPath = 'SensorData/' + uid.toString() + '/readings';
   var objDataDataRef = database.ref(dbPath);
   objDataDataRef.orderByChild("boardId").equalTo(id + ".00").limitToLast(1).on('child_added', function (snapshot) {
     var obj = snapshot.toJSON();
-    console.log("objId: ", obj.boardId)
+
     var objFloatId = obj.boardId;
     var objtime = obj.timestamp;
     var objid = parseInt(objFloatId);
@@ -415,38 +374,26 @@ function objDataChanges(id) {
     var objhum = Number(obj.humidity);
     var objpres = Number(obj.waterlevelpressure);
     var objbat = Number(obj.battery);
-    console.log("24hrsAgo", (objtime * 1000) >= twentyFourHoursAgo);
-    // if (objid == 1) {
-    //   var h2Element1 = document.getElementById("h2_1");
-    //   if (objpres > maxPressureObj1 && (objtime * 1000) >= twentyFourHoursAgo) {
-    //     maxPressureObj1 = objpres;
-    //   } else if (objtime < twentyFourHoursAgo) {
-    //     maxPressureObj1 = 0;
-    //   }
-    //   h2Element1.innerHTML = "Tributary River: " + maxPressureObj1 + "cm";
-    // } else if (objid == 2) {
-    //   var h2Element2 = document.getElementById("h2_2");
-    //   if (objpres > maxPressureObj2 && (objtime * 1000) >= twentyFourHoursAgo) {
-    //     maxPressureObj2 = objpres;
-    //   } else if (objtime < twentyFourHoursAgo) {
-    //     maxPressureObj2 = 0;
-    //   }
-    //   h2Element2.innerHTML = "E. Villanueva St.: " + maxPressureObj2 + "cm";
-    // } else if (objid == 3) {
-    //   var h2Element3 = document.getElementById("h2_3");
-    //   if (objpres > maxPressureObj3 && (objtime * 1000) >= twentyFourHoursAgo) {
-    //     maxPressureObj3 = objpres;
-    //   } else if (objtime < twentyFourHoursAgo) {
-    //     maxPressureObj3 = 0;
-    //   }
-    //   h2Element3.innerHTML = "Toclong II St.: " + maxPressureObj3 + "cm";
-    // }
+    console.log("objDataChanges objId: ", obj.boardId)
     var waterLevel = objpres;
+    console.log("objDataChanges waterLevel: ", waterLevel);
+    // mmdaBoostvalue set to 1 for testing, set to 2 for actual deployment 
+    // which depicts the actual water level status standard
 
-    if (waterLevel >= 10 && waterLevel <= 20 && (objtime * 1000) >= twentyFourHoursAgo) {
+    var mmdaBoostvalue = 1;
+    var nplvValuemin = 23 * mmdaBoostvalue;
+    var nplvValuemax = 45 * mmdaBoostvalue;
+    var npatvValuemax = 45 * mmdaBoostvalue;
+    var patvValuemin = -1 * mmdaBoostvalue;
+    var patvValuemax = 23 * mmdaBoostvalue;
+
+
+    if (waterLevel >= nplvValuemin && waterLevel < nplvValuemax && (objtime * 1000) >= twentyFourHoursAgo) {
       moveColumn(objid, "nplv-street");
-    } else if (waterLevel > 20 && waterLevel <= 150 && (objtime * 1000) >= twentyFourHoursAgo) {
+    } else if (waterLevel >= npatvValuemax && waterLevel < 150 && (objtime * 1000) >= twentyFourHoursAgo) {
       moveColumn(objid, "npatv-street");
+    } else if (waterLevel >= patvValuemin && waterLevel < patvValuemax && (objtime * 1000) >= twentyFourHoursAgo) {
+      moveColumn(objid, "patv-street");
     } else {
       moveColumn(objid, "patv-street");
     }
@@ -715,10 +662,743 @@ function objDataChanges(id) {
     });
   });
 }
-objDataChanges("1");
-objDataChanges("2");
-objDataChanges("3");
+
+function moveColumn(id, targetColumn) {
+  var column = document.getElementById(targetColumn);
+  var name = getNameById(id);
+  var idText = "<p>" + name + "</p>";
+
+  if (!column.innerHTML.includes(idText)) {
+    column.innerHTML += idText;
+  }
+
+  var otherColumns = ["patv-street", "nplv-street", "npatv-street"];
+  for (var i = 0; i < otherColumns.length; i++) {
+    if (otherColumns[i] !== targetColumn) {
+      var otherColumn = document.getElementById(otherColumns[i]);
+      otherColumn.innerHTML = otherColumn.innerHTML.replace(idText, "");
+    }
+  }
+}
+
+function getNameById(id) {
+  switch (id) {
+    case 1:
+      return "Tribunary River";
+    case 2:
+      return "E. Villanueva Ave.";
+    case 3:
+      return "Toclong II St.";
+    default:
+      return "Unknown";
+  }
+}
+// Function to gather and compare recent data for board 1
+function compareWaterLevelChanges(boardId) {
+  var dbPath = 'SensorData/' + uid.toString() + '/readings';
+  var changesDataRef = database.ref(dbPath);
+
+  changesDataRef.orderByChild("boardId").equalTo(boardId + ".00").limitToLast(144).once('value', function (snapshot) {
+    var readings = snapshot.val();
+    var latestReading = null;
+    var previousReading = null;
+    var previousWaterLevelHighest = -Infinity;
+
+    snapshot.forEach(function (childSnapshot) {
+      var reading = childSnapshot.val();
+
+      if (latestReading === null) {
+        latestReading = reading;
+      } else if (reading.timestamp > latestReading.timestamp) {
+        previousReading = latestReading;
+        latestReading = reading;
+      } else if (previousReading === null || reading.timestamp > previousReading.timestamp) {
+        previousReading = reading;
+      }
+    });
+
+    if (latestReading === null || previousReading === null) {
+      console.log("Insufficient data for comparison on board " + boardId + ".");
+      return;
+    }
+
+    var latestTime = latestReading.timestamp;
+
+    snapshot.forEach(function (childSnapshot) {
+      var reading = childSnapshot.val();
+      var objFloatId = reading.boardId;
+      var objtime = reading.timestamp;
+      var objid = parseInt(objFloatId);
+
+      // Skip the latest reading
+      // if (reading.timestamp !== latestTime) {
+      var waterLevel = parseFloat(reading.waterlevelpressure);
+
+      if (waterLevel > previousWaterLevelHighest) {
+        previousWaterLevelHighest = waterLevel;
+        previousTimeHighest = reading.timestamp;
+      }
+      // }
+
+      if (objid == 1) {
+        var h2Element1 = document.getElementById("h2_1");
+        if ((objtime * 1000) >= twentyFourHoursAgo) {
+          maxPressureObj1 = previousWaterLevelHighest;
+        } else if ((objtime * 1000) < twentyFourHoursAgo) {
+          maxPressureObj1 = 0;
+        }
+        h2Element1.innerHTML = "Tributary River: " + maxPressureObj1 + "cm";
+      } else if (objid == 2) {
+        var h2Element2 = document.getElementById("h2_2");
+        if ((objtime * 1000) >= twentyFourHoursAgo) {
+          maxPressureObj2 = previousWaterLevelHighest;
+        } else if ((objtime * 1000) < twentyFourHoursAgo) {
+          maxPressureObj2 = 0;
+        }
+        h2Element2.innerHTML = "E. Villanueva St.: " + maxPressureObj2 + "cm";
+      } else if (objid == 3) {
+        var h2Element3 = document.getElementById("h2_3");
+        if ((objtime * 1000) >= twentyFourHoursAgo) {
+          maxPressureObj3 = previousWaterLevelHighest;
+        } else if ((objtime * 1000) < twentyFourHoursAgo) {
+          maxPressureObj3 = 0;
+        }
+        h2Element3.innerHTML = "Toclong II St.: " + maxPressureObj3 + "cm";
+      }
+
+    });
+  });
+
+
+
+  // Retrieve the latest 10 readings for the specified board
+  changesDataRef.orderByChild("boardId").equalTo(boardId + ".00").limitToLast(10).once('value', function (snapshot) {
+    var readings = snapshot.val();
+
+    if (readings === null) {
+      console.log("No data found for board " + boardId + ".");
+      return;
+    }
+
+    var latestReading = null;
+    var previousReading = null;
+
+    // Iterate over the readings to find the latest and previous readings
+    snapshot.forEach(function (childSnapshot) {
+      var reading = childSnapshot.val();
+
+      if (latestReading === null) {
+        latestReading = reading;
+      } else if (reading.timestamp > latestReading.timestamp) {
+        previousReading = latestReading;
+        latestReading = reading;
+      } else if (previousReading === null || reading.timestamp > previousReading.timestamp) {
+        previousReading = reading;
+      }
+    });
+
+    if (latestReading === null || previousReading === null) {
+      console.log("Insufficient data for comparison on board " + boardId + ".");
+      return;
+    }
+
+    var latestTime = latestReading.timestamp;
+    console.log("latestTime:", latestTime);
+    var latestWaterLevel = parseFloat(latestReading.waterlevelpressure);
+    var previousTime = previousReading.timestamp;
+    console.log("previousTime:", previousTime);
+    var previousWaterLevel = parseFloat(previousReading.waterlevelpressure);
+
+    // var significantChangeThreshold = 1; // Define the threshold for significant water level change
+
+
+
+    // Find the highest water level from the previous readings except the latest reading (to avoid false positives)
+
+    var previousWaterLevelHighest = -Infinity;
+
+    // Iterate over the readings to find the highest water level except the latest reading
+    snapshot.forEach(function (childSnapshot) {
+      var reading = childSnapshot.val();
+      var waterLevel = parseFloat(reading.waterlevelpressure);
+      // if (reading.timestamp !== latestTime) {
+      if (waterLevel > previousWaterLevelHighest) {
+        previousWaterLevelHighest = waterLevel;
+        previousTimeHighest = reading.timestamp;
+      }
+      // }
+    });
+    var timeDiff = latestTime * 1000 - previousTimeHighest * 1000;
+    var timeDiffnow = Date.now() - previousTimeHighest * 1000;
+    console.log("previousWaterLevelHighest:", previousWaterLevelHighest);
+    var waterLevelDiff = latestWaterLevel - previousWaterLevelHighest;
+    console.log("previousWaterLevel:", previousWaterLevel);
+    console.log("waterLevelDiff:", waterLevelDiff);
+
+
+    if (waterLevelDiff > 0) {
+      var oh2Element2 = document.getElementById("oh2_" + boardId);
+      oh2Element2.innerHTML = "Water level difference: " + waterLevelDiff.toFixed(2) + " cm<br>(The flood increased by " + waterLevelDiff.toFixed(2) + " cm)";
+      console.log("The flood increased by " + waterLevelDiff + " cm");
+    } else if (waterLevelDiff < 0) {
+      var oh2Element2 = document.getElementById("oh2_" + boardId);
+      oh2Element2.innerHTML = "Water level difference: " + waterLevelDiff.toFixed(2) + " cm<br>(The flood decreased by " + Math.abs(waterLevelDiff.toFixed(2)) + " cm)";
+      console.log("The flood decreased by " + Math.abs(waterLevelDiff) + " cm");
+    } else {
+      var oh2Element2 = document.getElementById("oh2_" + boardId);
+      oh2Element2.innerHTML = "Water level difference: " + waterLevelDiff.toFixed(2) + " cm<br>(The flood shows no significant change)";
+      console.log("The flood shows no significant change");
+    }
+
+    var secondsDiff = Math.floor(timeDiff / 1000);
+    var days = Math.floor(secondsDiff / (24 * 60 * 60));
+    var hours = Math.floor((secondsDiff % (24 * 60 * 60)) / (60 * 60));
+    var minutes = Math.floor((secondsDiff % (60 * 60)) / 60);
+    var seconds = secondsDiff % 60;
+    var timeAgo = "";
+
+    if (days > 0) {
+      timeAgo = days + " days ago";
+    } else if (hours > 0) {
+      timeAgo = hours + " hours ago";
+    } else if (minutes > 0) {
+      timeAgo = minutes + " minutes ago";
+    } else {
+      timeAgo = seconds + " seconds ago";
+    }
+
+    var secondsDiffnow = Math.floor(timeDiffnow / 1000);
+    var daysnow = Math.floor(secondsDiffnow / (24 * 60 * 60));
+    var hoursnow = Math.floor((secondsDiffnow % (24 * 60 * 60)) / (60 * 60));
+    var minutesnow = Math.floor((secondsDiffnow % (60 * 60)) / 60);
+    var secondsnow = secondsDiffnow % 60;
+    var timeAgonow = "";
+
+    if (daysnow > 0) {
+      timeAgonow = daysnow + " days ago";
+    } else if (hoursnow > 0) {
+      timeAgonow = hoursnow + " hours ago";
+    } else if (minutesnow > 0) {
+      timeAgonow = minutesnow + " minutes ago";
+    } else {
+      timeAgonow = secondsnow + " seconds ago";
+    }
+
+    var oh2Element1 = document.getElementById("oh1_" + boardId);
+    oh2Element1.innerHTML = "Time difference from previous highest reading:<br>" + timeAgo + " (" + timeAgonow + ")";
+
+    console.log("Time difference (Board " + boardId + "):", timeDiff, "minutes");
+    console.log("Water level difference (Board " + boardId + "):", waterLevelDiff, "cm");
+
+    // // Create a Highcharts chart container
+    // var chartContainer = document.createElement("div");
+    // chartContainer.setAttribute("id", "chart_" + boardId);
+    // document.body.appendChild(chartContainer);
+
+    // // Generate the Highcharts chart
+    // Highcharts.chart("chart_" + boardId, {
+    //   title: {
+    //     text: null
+    //   },
+    //   xAxis: {
+    //     categories: ["Previous", "Latest"]
+    //   },
+    //   yAxis: {
+    //     title: {
+    //       text: "Water Level"
+    //     }
+    //   },
+    //   series: [{
+    //     name: "Water Level",
+    //     data: [previousWaterLevel, latestWaterLevel]
+    //   }]
+    // });
+    var chartContainer = document.createElement("div");
+    chartContainer.setAttribute("id", "chart_" + boardId);
+    document.body.appendChild(chartContainer);
+
+    // Prepare the data for the chart
+    var chartData = [];
+    snapshot.forEach(function (childSnapshot) {
+      var reading = childSnapshot.val();
+      var timestamp = epochToDateTime(reading.timestamp);
+      var waterLevel = parseFloat(reading.waterlevelpressure);
+      chartData.push([timestamp, waterLevel]);
+    });
+
+    // Sort the data in ascending order based on timestamp
+    chartData.sort(function (a, b) {
+      return a[0] - b[0];
+    });
+
+    // Generate the Highcharts chart
+    Highcharts.chart("chart_" + boardId, {
+      chart: {
+        type: "column",
+        height: 250 // Adjust the height as per your requirement
+      },
+      title: {
+        text: null // Remove the chart title
+      },
+      xAxis: {
+        type: "datetime",
+        title: {
+          text: "Timestamp"
+        }
+      },
+      yAxis: {
+        title: {
+          text: "Water Level Pressure"
+        }
+      },
+      series: [{
+        name: "Water Level",
+        data: chartData
+      }],
+      legend: {
+        enabled: false // Remove the legend if not needed
+      }
+    });
+  });
+}
+
+// Call the function for board 1, board 2, and board 3
+
+
+function floodRiskChanges(boardId, lastHourTimestamp) {
+  return new Promise(function (resolve, reject) {
+    var dbPath = 'SensorData/' + uid.toString() + '/readings';
+    var changesDataRef = database.ref(dbPath);
+
+    changesDataRef
+      .orderByChild("boardId")
+      .equalTo(boardId + ".00")
+      .limitToLast(144)
+      .once('value', function (snapshot) {
+        var readings = snapshot.val();
+        var maxPressure = -Infinity;
+        var maxPressureHumidity = 0;
+        var latestTimestamp = 0;
+        var latestTimeOfLastReading = 0;
+        var latestPressureOfLastReading = -Infinity;
+
+        snapshot.forEach(function (childSnapshot) {
+          var reading = childSnapshot.val();
+          var waterLevel = parseFloat(reading.waterlevelpressure);
+          var humidity = reading.humidity;
+          var timestamp = reading.timestamp; // Assuming each reading has a timestamp
+
+          // if (waterLevel > maxPressure && timestamp >= lastHourTimestamp) {
+          if (waterLevel > maxPressure && timestamp * 1000 >= lastHourTimestamp) {
+            maxPressure = waterLevel;
+            maxPressureHumidity = humidity;
+            latestTimestamp = timestamp * 1000;
+          }
+
+          if (((timestamp * 1000) > latestTimeOfLastReading) && ((timestamp * 1000) >= lastHourTimestamp)) {
+            latestTimeOfLastReading = timestamp * 1000;
+            latestPressureOfLastReading = waterLevel;
+          }
+        });
+
+        if (maxPressure === -Infinity || latestPressureOfLastReading === -Infinity) {
+          console.log("floodRiskChanges: Insufficient data for board " + boardId + ".");
+          resolve({
+            floodRiskValue: -1, // Use -1 or some other value to indicate an error
+            floodRiskValueLastReading: -1,
+            latestTimestamp: 0,  // Use 0 or some other value to indicate no data
+            latestTimeOfLastReading: 0,
+            latestPressureOfLastReading: 0,
+            maxPressure_cm: 0
+          });
+          return;
+        }
+
+        if (maxPressureHumidity >= 95) {
+          humidityFactorLastReading = 1.15;
+        } else if (maxPressureHumidity >= 85) {
+          humidityFactorLastReading = 1.10;
+        } else if (maxPressureHumidity >= 60) {
+          humidityFactorLastReading = 1.05;
+        }
+
+        var baseFloodRisk = 0;
+        var humidityFactor = 1.0;
+        var floodRiskValue = 0;
+
+        maxPressure_cm = maxPressure * 1.01972;
+
+        if (maxPressure_cm >= 58.42) {
+          baseFloodRisk = 99;
+        } else if (maxPressure_cm >= 45) {
+          baseFloodRisk = 74;
+        } else if (maxPressure_cm >= 23) {
+          baseFloodRisk = 49;
+        } else if (maxPressure_cm >= 10) {
+          baseFloodRisk = 24;
+        } else {
+          baseFloodRisk = 0;
+        }
+
+        if (maxPressureHumidity >= 95) {
+          humidityFactor = 1.15;
+        } else if (maxPressureHumidity >= 85) {
+          humidityFactor = 1.10;
+        } else if (maxPressureHumidity >= 60) {
+          humidityFactor = 1.05;
+        }
+
+        var baseFloodRiskLastReading = 0;
+        var humidityFactorLastReading = 1.0;
+        var floodRiskValueLastReading = 0;
+
+        maxPressure_cmLastReading = latestPressureOfLastReading * 1.01972;
+
+        console.log("floodRiskChanges maxPressure_cmLastReading:", maxPressure_cmLastReading);
+
+        if (maxPressure_cmLastReading >= 58.42) {
+          baseFloodRiskLastReading = 99;
+        } else if (maxPressure_cmLastReading >= 45) {
+          baseFloodRiskLastReading = 74;
+        } else if (maxPressure_cmLastReading >= 23) {
+          baseFloodRiskLastReading = 49;
+        } else if (maxPressure_cmLastReading >= 10) {
+          baseFloodRiskLastReading = 24;
+        } else {
+          baseFloodRiskLastReading = 0;
+        }
+
+        floodRiskValueLastReading = baseFloodRiskLastReading * humidityFactor;
+
+        floodRiskValue = baseFloodRisk * humidityFactor;
+
+        console.log("floodRiskChanges Flood Risk Value for board " + boardId + ": " + floodRiskValue);
+        console.log("floodRiskChanges Flood Risk Value for board " + boardId + ": " + floodRiskValueLastReading);
+        resolve({ floodRiskValue, latestTimestamp, maxPressure_cm, latestTimeOfLastReading, latestPressureOfLastReading, floodRiskValueLastReading });
+      });
+  });
+}
+function calculateMaxFloodRisk() {
+  var lastHourTimestamp = Date.now() - (24 * 60 * 60 * 1000);
+  console.log("lastHourTimestamp:", lastHourTimestamp);
+  var dbPath = 'SensorData/' + uid.toString() + '/FloodRiskData';
+  var floodRiskDataRef = database.ref(dbPath);
+
+
+  Promise.all([
+    floodRiskChanges(3, lastHourTimestamp),
+    floodRiskChanges(2, lastHourTimestamp),
+    floodRiskChanges(1, lastHourTimestamp)
+  ]).then(function (values) {
+    if (values.every(value => value.floodRiskValue === -1)) {
+      console.error('No data for all boards');
+      // Update the UI to show an error message to the user
+      var floodRiskValueRef = document.getElementById("flood-risk-value");
+      floodRiskValueRef.innerHTML = "No data for all boards";
+    } else {
+      var maxPeakFloodRisk = Math.max(...values.map(value => value.floodRiskValue));
+      var latestPeakTimestamp = Math.max(...values.map(value => value.latestTimestamp));
+      console.log("latestTimestamp:", latestTimestamp);
+      console.log("lastHourTimestamp:", lastHourTimestamp);
+      console.log("UpdateOrNah", latestTimestamp >= lastHourTimestamp)
+
+      var latestTimeOfLastReading = Math.max(...values.map(value => value.latestTimeOfLastReading));
+      var latestTimestamp = latestTimeOfLastReading;
+      var maxFloodRisk = Math.max(...values.map(value => value.floodRiskValueLastReading));
+
+      // if (latestTimestamp >= lastHourTimestamp) {
+      var latestTimestampSeconds = Math.floor(latestTimestamp / 1000);
+      var newRef = floodRiskDataRef.child(latestTimestampSeconds.toString());
+      newRef.set({
+        floodriskvalue: maxFloodRisk.toString(),
+        timestamp: latestTimestampSeconds.toString()
+      });
+      var timeDiffnow = latestTimeOfLastReading - latestPeakTimestamp;
+      var secondsDiffnow = Math.floor(timeDiffnow / 1000);
+      var daysnow = Math.floor(secondsDiffnow / (24 * 60 * 60));
+      var hoursnow = Math.floor((secondsDiffnow % (24 * 60 * 60)) / (60 * 60));
+      var minutesnow = Math.floor((secondsDiffnow % (60 * 60)) / 60);
+      var secondsnow = secondsDiffnow % 60;
+      var timeAgonow = "";
+
+      if (daysnow > 0) {
+        timeAgonow = daysnow + " days ago from highest reading";
+      } else if (hoursnow > 0) {
+        timeAgonow = hoursnow + " hours ago from highest reading";
+      } else if (minutesnow > 0) {
+        timeAgonow = minutesnow + " minutes ago from highest reading";
+      } else {
+        timeAgonow = secondsnow + " seconds ago from highest reading";
+      }
+      // }
+
+      // Update Highcharts chart
+      var chart = Highcharts.chart('flood-risk-bar', {
+        chart: {
+          type: "gauge",
+          height: 250
+        },
+        title: {
+          text: "Flood Risk (Today)"
+        },
+        pane: {
+          size: "100%",
+          startAngle: -90,
+          endAngle: 90,
+          background: [
+            {
+
+              backgroundColor: "white",
+              innerRadius: "0%",
+              outerRadius: "0%",
+              borderWidth: 0
+            }
+          ]
+        },
+        tooltip: {
+          enabled: false
+        },
+        credits: {
+          enabled: false
+        },
+        plotOptions: {
+          gauge: {
+            dataLabels: {
+              enabled: false
+            },
+            dial: {
+              baseLength: "0%",
+              baseWidth: 5,
+              radius: "90%",
+              rearLength: "0%",
+              topWidth: 1
+            }
+          }
+        },
+        yAxis: {
+          lineWidth: 0,
+          tickWidth: 0,
+          tickPositions: [],
+          minorTickInterval: null,
+          min: 0,
+          max: 120,
+          plotBands: [
+            {
+              from: 76,
+              to: 120,
+              color: "red",
+              thickness: "40%"
+
+            },
+            {
+              from: 51,
+              to: 75,
+              color: "orange",
+              thickness: "40%"
+            },
+            {
+              from: 26,
+              to: 50,
+              color: "yellow",
+              thickness: "40%"
+            },
+            {
+              from: 0,
+              to: 25,
+              color: "green",
+              thickness: "40%"
+            }
+          ]
+        },
+        series: [
+          {
+            data: []
+          }
+        ]
+      });
+
+      chart.series[0].update({
+        data: [maxPeakFloodRisk]
+      });
+
+      // Update label
+      var floodRiskValueRef = document.getElementById("flood-risk-value");
+      var floodRiskPeakValueRef = document.getElementById("flood-peak-risk-value");
+      var currentTime = new Date().getTime();
+      var oneHourAgo = currentTime - (60 * 60 * 1000);
+      console.log("floodriskvalue :", maxFloodRisk);
+
+      var waterPeakLevel = values[0].maxPressure_cm;
+      console.log("Water Level :", waterPeakLevel);
+
+      var waterLevel = Math.max(...values.map(value => value.latestPressureOfLastReading));
+
+      var floodRiskValue = "";
+
+      if (waterLevel >= 58) {
+        floodRiskValue = "Chest Level / Whole Car Level";
+      } else if (waterLevel >= 45 && waterLevel < 58) {
+        floodRiskValue = "Waist Level / Tire Level";
+      } else if (waterLevel >= 23 && waterLevel < 45) {
+        floodRiskValue = "Knee Level / Half Tire Level";
+      } else if (waterLevel >= 12 && waterLevel < 23) {
+        floodRiskValue = "Half Knee Level";
+      } else if (waterLevel >= 10 && waterLevel < 12) {
+        floodRiskValue = "Gutter Level";
+      } else if (waterLevel >= -2 && waterLevel < 10) {
+        floodRiskValue = "Foot Level";
+      } else {
+        floodRiskValue = "Unknown";
+      }
+
+      var floodRiskLevel = "";
+      if (maxFloodRisk > 75 && maxFloodRisk <= 120) {
+        floodRiskLevel = "Critical";
+      } else if (maxFloodRisk > 50 && maxFloodRisk <= 75) {
+        floodRiskLevel = "Danger";
+      } else if (maxFloodRisk > 25 && maxFloodRisk <= 50) {
+        floodRiskLevel = "Warning";
+      } else if (maxFloodRisk >= 0 && maxFloodRisk <= 25) {
+        floodRiskLevel = "Safe";
+      } else {
+        floodRiskLevel = "Unknown";
+      }
+      var floodPeakRiskValue = "";
+
+      if (waterPeakLevel >= 58) {
+        floodPeakRiskValue = "Chest Level / Whole Car Level";
+      } else if (waterPeakLevel >= 45 && waterPeakLevel < 58) {
+        floodPeakRiskValue = "Waist Level / Tire Level";
+      } else if (waterPeakLevel >= 23 && waterPeakLevel < 45) {
+        floodPeakRiskValue = "Knee Level / Half Tire Level";
+      } else if (waterPeakLevel >= 12 && waterPeakLevel < 23) {
+        floodPeakRiskValue = "Half Knee Level";
+      } else if (waterPeakLevel >= 10 && waterPeakLevel < 12) {
+        floodPeakRiskValue = "Gutter Level";
+      } else if (waterPeakLevel >= -2 && waterPeakLevel < 10) {
+        floodPeakRiskValue = "Foot Level";
+      } else {
+        floodPeakRiskValue = "Unknown";
+      }
+
+      var floodPeakRiskLevel = "";
+      if (maxPeakFloodRisk > 75 && maxPeakFloodRisk <= 120) {
+        floodPeakRiskLevel = "Critical";
+      } else if (maxPeakFloodRisk > 50 && maxPeakFloodRisk <= 75) {
+        floodPeakRiskLevel = "Danger";
+      } else if (maxPeakFloodRisk > 25 && maxPeakFloodRisk <= 50) {
+        floodPeakRiskLevel = "Warning";
+      } else if (maxPeakFloodRisk >= 0 && maxPeakFloodRisk <= 25) {
+        floodPeakRiskLevel = "Safe";
+      } else {
+        floodPeakRiskLevel = "Unknown";
+      }
+      console.log("maxPeakFloodRisk :", maxPeakFloodRisk);
+      console.log("floodPeakRiskLevel :", floodPeakRiskLevel);
+
+      var floodRiskDescription = "<hr>Current: " + floodRiskLevel + "(" + floodRiskValue + ")<br>" + timeAgonow;
+      console.log("Flood Risk: " + floodRiskDescription);
+      var floodRiskPeakDescription = floodPeakRiskLevel + "<br>(" + floodPeakRiskValue + ")";
+      console.log("Flood Risk: " + floodRiskPeakDescription);
+
+      floodRiskPeakValueRef.innerHTML = floodRiskPeakDescription;
+      floodRiskValueRef.innerHTML = floodRiskDescription;
+    }
+  }).catch(function (error) {
+    console.error(error);
+
+    var chart = Highcharts.chart('flood-risk-bar', {
+      chart: {
+        type: "gauge",
+        height: 250
+      },
+      title: {
+        text: "Flood Risk (Today)"
+      },
+      pane: {
+        size: "100%",
+        startAngle: -90,
+        endAngle: 90,
+        background: [
+          {
+
+            backgroundColor: "white",
+            innerRadius: "0%",
+            outerRadius: "0%",
+            borderWidth: 0
+          }
+        ]
+      },
+      tooltip: {
+        enabled: false
+      },
+      credits: {
+        enabled: false
+      },
+      plotOptions: {
+        gauge: {
+          dataLabels: {
+            enabled: false
+          },
+          dial: {
+            baseLength: "0%",
+            baseWidth: 5,
+            radius: "90%",
+            rearLength: "0%",
+            topWidth: 1
+          }
+        }
+      },
+      yAxis: {
+        lineWidth: 0,
+        tickWidth: 0,
+        tickPositions: [],
+        minorTickInterval: null,
+        min: 0,
+        max: 100,
+        plotBands: [
+          {
+            from: 67,
+            to: 100,
+            color: "red",
+            thickness: "40%"
+
+          },
+          {
+            from: 33,
+            to: 66,
+            color: "orange",
+            thickness: "40%"
+          },
+          {
+            from: 0,
+            to: 32,
+            color: "green",
+            thickness: "40%"
+          }
+        ]
+      },
+      series: [
+        {
+          data: []
+        }
+      ]
+    });
+
+    // Update label
+    var floodRiskValueRef = document.getElementById("flood-risk-value");
+    floodRiskValueRef.innerHTML = "Insufficient data";
+  });
+}
 sensorDataRef1.limitToLast(5).on('child_added', function (snapshot) {
+  createHistoricalChart();
+  compareWaterLevelChanges("1");
+  compareWaterLevelChanges("2");
+  compareWaterLevelChanges("3");
+  objDataChanges("1");
+  objDataChanges("2");
+  objDataChanges("3");
+  calculateMaxFloodRisk();
   var recentDataDiv = document.getElementById('recent-data');
   var obj = snapshot.val();
   var objFloatId = obj.boardId;
@@ -806,334 +1486,51 @@ sensorDataRef1.limitToLast(5).on('child_added', function (snapshot) {
   recentDataDiv.style.maxHeight = '300px'; // Adjust the desired height here
   recentDataDiv.style.overflowY = 'auto';
 });
-function updateProgressBar(frValue, timeValue) {
-  // Update the chart series data
+floodRiskDataRef1.limitToLast(5).on('child_added', function (snapshot) {
+  var recentFloodDataDiv = document.getElementById('recent-data-flood');
+  var obj = snapshot.val();
+  var objfr = Number(obj.floodriskvalue);
+  var objtime = obj.timestamp;
 
-  var chart = Highcharts.charts[0]; // Get the reference to the chart
-  if (chart && (timeValue * 1000) >= oneHourAgo) {
-    var series = chart.series[0]; // Get the reference to the series
-    series.update({
-      data: [frValue]
-    }, true);
-  }
-  console.log("floodriskvalue :", frValue);
-  if (frValue >= 33 && frValue <= 66 && (timeValue * 1000) >= oneHourAgo) {
-    var floodRiskValueRef = document.getElementById("flood-risk-value");
-    floodRiskValueRef.innerHTML = "Warning";
-  } else if (frValue > 67 && frValue <= 100 && (timeValue * 1000) >= oneHourAgo) {
-    var floodRiskValueRef = document.getElementById("flood-risk-value");
-    floodRiskValueRef.innerHTML = "Danger";
+  // Create the card and card-body elements
+  var card = document.createElement('div');
+  card.className = 'card';
 
-  } else if (frValue > -1 && frValue <= 32 && (timeValue * 1000) >= oneHourAgo) {
-    var floodRiskValueRef = document.getElementById("flood-risk-value");
-    floodRiskValueRef.innerHTML = "Safe";
-  } else {
-    var floodRiskValueRef = document.getElementById("flood-risk-value");
-    floodRiskValueRef.innerHTML = "Not updated/Unknown";
-  }
+  var cardBody = document.createElement('div');
+  cardBody.className = 'card-body';
 
-}
-function moveColumn(id, targetColumn) {
-  var column = document.getElementById(targetColumn);
-  var name = getNameById(id);
-  var idText = "<p>" + name + "</p>";
+  // Create a <p> element to display the field data
+  // Create a <div> element to contain the field data
+  var fieldData = document.createElement('div');
 
-  if (!column.innerHTML.includes(idText)) {
-    column.innerHTML += idText;
+  // Create a <span> element for each data field
+  var objfrSpan = createBadgeSpan("FloodRiskValue: " + objfr);
+  var objtimeSpan = createBadgeSpan("Time: " + epochToDateTime(objtime));
+
+  // Function to create a <span> element with Bootstrap badge
+  function createBadgeSpan(text) {
+    var span = document.createElement('span');
+    span.className = 'badge bg-success me-1';
+    span.textContent = text;
+    return span;
   }
 
-  var otherColumns = ["patv-street", "nplv-street", "npatv-street"];
-  for (var i = 0; i < otherColumns.length; i++) {
-    if (otherColumns[i] !== targetColumn) {
-      var otherColumn = document.getElementById(otherColumns[i]);
-      otherColumn.innerHTML = otherColumn.innerHTML.replace(idText, "");
-    }
-  }
-}
+  fieldData.appendChild(objfrSpan);
+  fieldData.appendChild(objtimeSpan);
+  // Append the field data to the card-body
 
-function getNameById(id) {
-  switch (id) {
-    case 1:
-      return "Tribunary River";
-    case 2:
-      return "E. Villanueva Ave.";
-    case 3:
-      return "Toclong II St.";
-    default:
-      return "Unknown";
-  }
-}
-// Function to gather and compare recent data for board 1
-function compareWaterLevelChanges(boardId) {
-  var dbPath = 'SensorData/' + uid.toString() + '/readings';
-  var changesDataRef = database.ref(dbPath);
+  cardBody.appendChild(fieldData);
+  // Append the card-body to the card
+  card.appendChild(cardBody);
 
-  changesDataRef.orderByChild("boardId").equalTo(boardId + ".00").limitToLast(144).once('value', function (snapshot) {
-    var readings = snapshot.val();
-    var latestReading = null;
-    var previousReading = null;
-    var previousWaterLevelHighest = -Infinity;
+  // Append the card to the recent data div
+  recentFloodDataDiv.prepend(card);
+  recentFloodDataDiv.style.maxHeight = '200px'; // Adjust the desired height here
+  recentFloodDataDiv.style.overflowY = 'auto';
+});
+// setInterval(calculateMaxFloodRisk, 10 * 60 * 1000); // Run every 10 minutes
+calculateMaxFloodRisk();
 
-    snapshot.forEach(function (childSnapshot) {
-      var reading = childSnapshot.val();
-
-      if (latestReading === null) {
-        latestReading = reading;
-      } else if (reading.timestamp > latestReading.timestamp) {
-        previousReading = latestReading;
-        latestReading = reading;
-      } else if (previousReading === null || reading.timestamp > previousReading.timestamp) {
-        previousReading = reading;
-      }
-    });
-
-    if (latestReading === null || previousReading === null) {
-      console.log("Insufficient data for comparison on board " + boardId + ".");
-      return;
-    }
-
-    var latestTime = latestReading.timestamp;
-    
-    snapshot.forEach(function (childSnapshot) {
-      var reading = childSnapshot.val();
-      var objFloatId = reading.boardId;
-      var objtime = reading.timestamp;
-      var objid = parseInt(objFloatId);
-
-      // Skip the latest reading
-      if (reading.timestamp !== latestTime) {
-        var waterLevel = parseFloat(reading.waterlevelpressure);
-
-        if (waterLevel > previousWaterLevelHighest) {
-          previousWaterLevelHighest = waterLevel;
-          previousTimeHighest = reading.timestamp;
-        }
-      }
-      
-      if (objid == 1) {
-        var h2Element1 = document.getElementById("h2_1");
-        if ((objtime * 1000) >= twentyFourHoursAgo) {
-          maxPressureObj1 = previousWaterLevelHighest;
-        } else if ((objtime * 1000) < twentyFourHoursAgo) {
-          maxPressureObj1 = 0;
-        }
-        h2Element1.innerHTML = "Tributary River: " + maxPressureObj1 + "cm";
-      } else if (objid == 2) {
-        var h2Element2 = document.getElementById("h2_2");
-        if ((objtime * 1000) >= twentyFourHoursAgo) {
-          maxPressureObj2 = previousWaterLevelHighest;
-        } else if ((objtime * 1000) < twentyFourHoursAgo) {
-          maxPressureObj2 = 0;
-        }
-        h2Element2.innerHTML = "E. Villanueva St.: " + maxPressureObj2 + "cm";
-      } else if (objid == 3) {
-        var h2Element3 = document.getElementById("h2_3");
-        if ((objtime * 1000) >= twentyFourHoursAgo) {
-          maxPressureObj3 = previousWaterLevelHighest;
-        } else if ((objtime * 1000) < twentyFourHoursAgo) {
-          maxPressureObj3 = 0;
-        }
-        h2Element3.innerHTML = "Toclong II St.: " + maxPressureObj3 + "cm";
-      }
-
-    });
-  });
-
-
-
-  // Retrieve the latest 10 readings for the specified board
-  changesDataRef.orderByChild("boardId").equalTo(boardId + ".00").limitToLast(10).once('value', function (snapshot) {
-    var readings = snapshot.val();
-
-    if (readings === null) {
-      console.log("No data found for board " + boardId + ".");
-      return;
-    }
-
-    var latestReading = null;
-    var previousReading = null;
-
-    // Iterate over the readings to find the latest and previous readings
-    snapshot.forEach(function (childSnapshot) {
-      var reading = childSnapshot.val();
-
-      if (latestReading === null) {
-        latestReading = reading;
-      } else if (reading.timestamp > latestReading.timestamp) {
-        previousReading = latestReading;
-        latestReading = reading;
-      } else if (previousReading === null || reading.timestamp > previousReading.timestamp) {
-        previousReading = reading;
-      }
-    });
-
-    if (latestReading === null || previousReading === null) {
-      console.log("Insufficient data for comparison on board " + boardId + ".");
-      return;
-    }
-
-    var latestTime = latestReading.timestamp;
-    console.log("latestTime:", latestTime);
-    var latestWaterLevel = parseFloat(latestReading.waterlevelpressure);
-    var previousTime = previousReading.timestamp;
-    console.log("previousTime:", previousTime);
-    var previousWaterLevel = parseFloat(previousReading.waterlevelpressure);
-
-    // var significantChangeThreshold = 1; // Define the threshold for significant water level change
-
-
-
-    // Find the highest water level from the previous readings except the latest reading (to avoid false positives)
-
-    var previousWaterLevelHighest = -Infinity;
-
-    // Iterate over the readings to find the highest water level except the latest reading
-    snapshot.forEach(function (childSnapshot) {
-      var reading = childSnapshot.val();
-
-      // Skip the latest reading
-      if (reading.timestamp !== latestTime) {
-        var waterLevel = parseFloat(reading.waterlevelpressure);
-
-        if (waterLevel > previousWaterLevelHighest) {
-          previousWaterLevelHighest = waterLevel;
-          previousTimeHighest = reading.timestamp;
-        }
-      }
-    });
-    var timeDiff = latestTime * 1000 - previousTimeHighest * 1000;
-    var timeDiffnow = Date.now() - previousTimeHighest * 1000;
-    console.log("previousWaterLevelHighest:", previousWaterLevelHighest);
-    var waterLevelDiff = latestWaterLevel - previousWaterLevelHighest;
-    console.log("previousWaterLevel:", previousWaterLevel);
-    console.log("waterLevelDiff:", waterLevelDiff);
-    // Check if the water level difference is significant
-    // if (Math.abs(waterLevelDiff) < significantChangeThreshold) {
-    //   var oh2Element2 = document.getElementById("oh2_" + boardId);
-    //   oh2Element2.innerHTML = "Insufficient water level change";
-    //   console.log("Insufficient water level change for comparison on board " + boardId + ".");
-    //   return;
-    // } else {
-    var oh2Element2 = document.getElementById("oh2_" + boardId);
-    oh2Element2.innerHTML = "Water level difference: " + waterLevelDiff + " cm";
-    // }
-
-    var secondsDiff = Math.floor(timeDiff / 1000);
-    var days = Math.floor(secondsDiff / (24 * 60 * 60));
-    var hours = Math.floor((secondsDiff % (24 * 60 * 60)) / (60 * 60));
-    var minutes = Math.floor((secondsDiff % (60 * 60)) / 60);
-    var seconds = secondsDiff % 60;
-    var timeAgo = "";
-
-    if (days > 0) {
-      timeAgo = days + " days ago";
-    } else if (hours > 0) {
-      timeAgo = hours + " hours ago";
-    } else if (minutes > 0) {
-      timeAgo = minutes + " minutes ago";
-    } else {
-      timeAgo = seconds + " seconds ago";
-    }
-
-    var secondsDiffnow = Math.floor(timeDiffnow / 1000);
-    var daysnow = Math.floor(secondsDiffnow / (24 * 60 * 60));
-    var hoursnow = Math.floor((secondsDiffnow % (24 * 60 * 60)) / (60 * 60));
-    var minutesnow = Math.floor((secondsDiffnow % (60 * 60)) / 60);
-    var secondsnow = secondsDiffnow % 60;
-    var timeAgonow = "";
-
-    if (daysnow > 0) {
-      timeAgonow = daysnow + " days ago";
-    } else if (hoursnow > 0) {
-      timeAgonow = hoursnow + " hours ago";
-    } else if (minutesnow > 0) {
-      timeAgonow = minutesnow + " minutes ago";
-    } else {
-      timeAgonow = secondsnow + " seconds ago";
-    }
-
-    var oh2Element1 = document.getElementById("oh1_" + boardId);
-    oh2Element1.innerHTML = "Time difference from previous reading: " + timeAgo + "<br> (" + timeAgonow + ")";
-
-    console.log("Time difference (Board " + boardId + "):", timeDiff, "minutes");
-    console.log("Water level difference (Board " + boardId + "):", waterLevelDiff, "cm");
-
-    // // Create a Highcharts chart container
-    // var chartContainer = document.createElement("div");
-    // chartContainer.setAttribute("id", "chart_" + boardId);
-    // document.body.appendChild(chartContainer);
-
-    // // Generate the Highcharts chart
-    // Highcharts.chart("chart_" + boardId, {
-    //   title: {
-    //     text: null
-    //   },
-    //   xAxis: {
-    //     categories: ["Previous", "Latest"]
-    //   },
-    //   yAxis: {
-    //     title: {
-    //       text: "Water Level"
-    //     }
-    //   },
-    //   series: [{
-    //     name: "Water Level",
-    //     data: [previousWaterLevel, latestWaterLevel]
-    //   }]
-    // });
-    var chartContainer = document.createElement("div");
-    chartContainer.setAttribute("id", "chart_" + boardId);
-    document.body.appendChild(chartContainer);
-
-    // Prepare the data for the chart
-    var chartData = [];
-    snapshot.forEach(function (childSnapshot) {
-      var reading = childSnapshot.val();
-      var timestamp = epochToDateTime(reading.timestamp);
-      var waterLevel = parseFloat(reading.waterlevelpressure);
-      chartData.push([timestamp, waterLevel]);
-    });
-
-    // Sort the data in ascending order based on timestamp
-    chartData.sort(function (a, b) {
-      return a[0] - b[0];
-    });
-
-    // Generate the Highcharts chart
-    Highcharts.chart("chart_" + boardId, {
-      chart: {
-        type: "column",
-        height: 250 // Adjust the height as per your requirement
-      },
-      title: {
-        text: null // Remove the chart title
-      },
-      xAxis: {
-        type: "datetime",
-        title: {
-          text: "Timestamp"
-        }
-      },
-      yAxis: {
-        title: {
-          text: "Water Level Pressure"
-        }
-      },
-      series: [{
-        name: "Water Level",
-        data: chartData
-      }],
-      legend: {
-        enabled: false // Remove the legend if not needed
-      }
-    });
-  });
-}
-
-// Call the function for board 1, board 2, and board 3
-compareWaterLevelChanges("1");
-compareWaterLevelChanges("2");
-compareWaterLevelChanges("3");
 function initMap() {
   var sensor1LastUpdated = null;
   var sensor2LastUpdated = null;
@@ -1141,6 +1538,16 @@ function initMap() {
   var sensorMarkers = [];
   var sensorData = ""; // Define sensorData variable outside of the event listener
   var rangeCircle;
+
+  // mmdaBoostvalue set to 1 for testing, set to 2 for actual deployment 
+  // which depicts the actual water level status standard
+
+  var mmdaBoostvalue = 1;
+  var nplvValuemin = 23 * mmdaBoostvalue;
+  var nplvValuemax = 45 * mmdaBoostvalue;
+  var npatvValuemax = 45 * mmdaBoostvalue;
+  var patvValuemin = -5 * mmdaBoostvalue;
+  var patvValuemax = 23 * mmdaBoostvalue;
 
   var infowindow = new google.maps.InfoWindow(); // Declare the infowindow variable outside the event listener
 
@@ -1264,12 +1671,22 @@ function initMap() {
       };
 
       // Update the range circle color based on the water level for sensor 3
-      if (objpres >= 10 && objpres <= 15) {
+      // if (objpres >= 10 && objpres <= 15) {
+      //   sensorMarkers[3].rangeCircle.setOptions({ fillColor: "orange" });
+      // } else if (objpres > 15 && objpres <= 200 && (objtime * 1000) >= twentyFourHoursAgo) {
+      //   sensorMarkers[3].rangeCircle.setOptions({ fillColor: "red" });
+      // } else {
+      //   sensorMarkers[3].rangeCircle.setOptions({ fillColor: "green" });
+      // }
+      if (objpres >= nplvValuemin && objpres < nplvValuemax && (objtime * 1000) >= twentyFourHoursAgo) {
         sensorMarkers[3].rangeCircle.setOptions({ fillColor: "orange" });
-      } else if (objpres > 15 && objpres <= 200) {
+      } else if (objpres >= npatvValuemax && objpres < 150 && (objtime * 1000) >= twentyFourHoursAgo) {
         sensorMarkers[3].rangeCircle.setOptions({ fillColor: "red" });
-      } else {
+      }
+      else if (objpres >= patvValuemin && objpres < patvValuemax && (objtime * 1000) >= twentyFourHoursAgo) {
         sensorMarkers[3].rangeCircle.setOptions({ fillColor: "green" });
+      } else {
+        sensorMarkers[3].rangeCircle.setOptions({ fillColor: "gray" });
       }
       sensor3LastUpdated = objtime * 1000; // Convert epoch time to JavaScript Date object
 
@@ -1300,12 +1717,14 @@ function initMap() {
       };
 
       // Update the range circle color based on the water level for sensor 2
-      if (objpres >= 10 && objpres <= 15) {
+      if (objpres >= nplvValuemin && objpres < nplvValuemax && (objtime * 1000) >= twentyFourHoursAgo) {
         sensorMarkers[2].rangeCircle.setOptions({ fillColor: "orange" });
-      } else if (objpres > 15 && objpres <= 200) {
+      } else if (objpres >= npatvValuemax && objpres < 150 && (objtime * 1000) >= twentyFourHoursAgo) {
         sensorMarkers[2].rangeCircle.setOptions({ fillColor: "red" });
-      } else {
+      } else if (objpres >= patvValuemin && objpres < patvValuemax && (objtime * 1000) >= twentyFourHoursAgo) {
         sensorMarkers[2].rangeCircle.setOptions({ fillColor: "green" });
+      } else {
+        sensorMarkers[2].rangeCircle.setOptions({ fillColor: "gray" });
       }
       sensor2LastUpdated = objtime * 1000; // Convert epoch time to JavaScript Date object
 
@@ -1336,12 +1755,14 @@ function initMap() {
       };
 
       // Update the range circle color based on the water level for sensor 1
-      if (objpres >= 10 && objpres <= 15) {
+      if (objpres >= nplvValuemin && objpres < nplvValuemax && (objtime * 1000) >= twentyFourHoursAgo) {
         sensorMarkers[1].rangeCircle.setOptions({ fillColor: "orange" });
-      } else if (objpres > 15 && objpres <= 200) {
+      } else if (objpres >= npatvValuemax && objpres < 150 && (objtime * 1000) >= twentyFourHoursAgo) {
         sensorMarkers[1].rangeCircle.setOptions({ fillColor: "red" });
-      } else {
+      } else if (objpres >= patvValuemin && objpres < patvValuemax && (objtime * 1000) >= twentyFourHoursAgo) {
         sensorMarkers[1].rangeCircle.setOptions({ fillColor: "green" });
+      } else {
+        sensorMarkers[1].rangeCircle.setOptions({ fillColor: "gray" });
       }
       sensor1LastUpdated = objtime * 1000; // Convert epoch time to JavaScript Date object
 
@@ -1352,42 +1773,3 @@ function initMap() {
 
 }
 initMap();
-window.jsPDF = window.jspdf.jsPDF
-// Event listener for the download button
-// Event listener for the download button
-document.getElementById('download-btn').addEventListener('click', function () {
-  // Capture the web page using html2canvas
-  html2canvas(document.body, {
-    scrollY: -window.scrollY, // Capture the entire page by scrolling
-    windowWidth: document.documentElement.offsetWidth, // Set the width of the captured screenshot
-    windowHeight: document.documentElement.offsetHeight, // Set the height of the captured screenshot
-    useCORS: true // Enable CORS to capture images from external sources
-  }).then(function (canvas) {
-    var imgData = canvas.toDataURL('image/png');
-    var doc = new jsPDF('landscape'); // Set the orientation to landscape
-    var pdfWidth = doc.internal.pageSize.getWidth();
-    var pdfHeight = doc.internal.pageSize.getHeight();
-    var imgHeight = (canvas.height * pdfWidth) / canvas.width;
-    var remainingHeight = imgHeight;
-
-    var pageHeight = pdfHeight - 20; // Adjust the margin to suit your needs
-
-    // Calculate the number of required pages
-    var numPages = Math.ceil(imgHeight / pageHeight);
-
-    for (var pageNumber = 0; pageNumber < numPages; pageNumber++) {
-      if (pageNumber > 0) {
-        doc.addPage();
-      }
-      var heightPosition = -pageNumber * pageHeight;
-      doc.addImage(imgData, 'PNG', 0, heightPosition, pdfWidth, imgHeight, null, 'FAST');
-    }
-
-    // Generate a unique name for the PDF file using the current date and time
-    var now = new Date();
-    var fileName = 'FLOOD-ALERT-ALL-REPORT_' + now.toLocaleDateString().replace(/\//g, '-') + '_' + now.toLocaleTimeString().replace(/:/g, '');
-
-    // Download the PDF with the generated file name
-    doc.save(fileName + '.pdf');
-  });
-});
