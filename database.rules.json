@@ -1,6 +1,13 @@
 {
   "rules": {
-    ".read": "now < 1688745600000",  // 2023-7-8
-    ".write": "now < 1688745600000",  // 2023-7-8
+    "SensorData": {
+      "$uid": {
+        ".read": "true",
+        ".write": "true",
+        "readings": {
+          ".indexOn": "boardId"
+        }
+      }
+    }
   }
 }

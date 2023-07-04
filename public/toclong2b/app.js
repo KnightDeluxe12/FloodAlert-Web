@@ -1,3 +1,4 @@
+
 // Replace with your Firebase project's configuration
 var firebaseConfig = {
   apiKey: "AIzaSyCvh_Wg62d3eBKcTC2H1mmti_WGAA_eRC0",
@@ -97,7 +98,6 @@ var mapDataRef = database.ref(dbPath);
 var obj1DataRef = database.ref(dbPath);
 var obj2DataRef = database.ref(dbPath);
 var obj3DataRef = database.ref(dbPath);
-// var charts = {};
 var maxPressureObj1 = 0;
 var maxPressureObj2 = 0;
 var maxPressureObj3 = 0;
@@ -105,12 +105,12 @@ var floodRiskDataRef = database.ref(dbfloodRiskPath).orderByKey().limitToLast(1)
 var boardDataRef = database.ref(dbPath).orderByKey();
 var sensorDataRef1 = database.ref(dbPath).orderByKey();
 var floodRiskDataRef1 = database.ref(dbfloodRiskPath).orderByKey();
+var refreshDB = database.ref(dbPath).orderByKey();
 var twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
 var oneHourAgo = Date.now() - 1 * 60 * 60 * 1000;
 var lastWaterLevel = null;
 
 var historyChart; // Reference to the Highcharts chart
-
 
 function fetchHistoryData(boardId) {
   var dbPath = 'SensorData/' + uid.toString() + '/readings';
@@ -118,7 +118,7 @@ function fetchHistoryData(boardId) {
 
   return new Promise((resolve, reject) => {
     // Retrieve the latest 50 readings for the specified board
-    boardDataRef.orderByChild("boardId").equalTo(boardId + ".00").limitToLast(50).once('value', function (snapshot) {
+    boardDataRef.orderByChild("boardId").equalTo(boardId + ".00").once('value', function (snapshot) {
       var readings = snapshot.val();
       var data = [];
 
@@ -144,7 +144,7 @@ function fetchHistoryData(boardId) {
 // Function to fetch flood risk data
 function fetchFloodRiskData() {
   var dbFloodRiskPath = 'SensorData/' + uid.toString() + '/FloodRiskData';
-  var floodRiskDataRef = database.ref(dbFloodRiskPath).orderByKey().limitToLast(50);
+  var floodRiskDataRef = database.ref(dbFloodRiskPath).orderByKey().limitToLast(120);
 
   return new Promise((resolve, reject) => {
     floodRiskDataRef.once('value', function (snapshot) {
@@ -172,19 +172,19 @@ function fetchFloodRiskData() {
 
 // Function to create a Highcharts chart
 async function createHistoricalChart() {
-  // Fetch data from boards 1, 2, 3 and flood risk data
+  // Fetch data from boards 1, 2, 3, and flood risk data
   var dataBoard1 = await fetchHistoryData(1);
   var dataBoard2 = await fetchHistoryData(2);
   var dataBoard3 = await fetchHistoryData(3);
   var dataFloodRisk = await fetchFloodRiskData();
 
   // Create Highcharts chart
-  historyChart = Highcharts.chart('container1', {
+  var historyChart = Highcharts.chart('container1', {
     chart: {
-      type: 'line'
+      type: 'areaspline'
     },
     title: {
-      text: 'Water Level Pressure Changes and Flood Risk'
+      text: 'Water Level Changes and Flood Risk'
     },
     xAxis: {
       type: 'datetime',
@@ -195,28 +195,66 @@ async function createHistoricalChart() {
     yAxis: {
       title: {
         text: 'Values'
-      }
+      },
+      min: 0,
+      max: 100
     },
     series: [
       {
-        name: 'Tribunary River - Water Level Pressure',
+        type: 'areaspline',
+        name: 'Toclong II St. (B) - Water Level',
         data: dataBoard1
       },
       {
-        name: 'E. Villanueva St. - Water Level Pressure',
+        type: 'areaspline',
+        name: 'E. Villanueva St. - Water Level',
         data: dataBoard2
       },
       {
-        name: 'Toclong II St. - Water Level Pressure',
+        type: 'areaspline',
+        name: 'Toclong II St. (A) - Water Level',
         data: dataBoard3
       },
       {
+        type: 'column',
         name: 'Flood Risk',
         data: dataFloodRisk
       }
     ]
   });
 }
+
+
+function extractDatesFromData(data) {
+  const uniqueDates = new Set();
+  for (let item of data) {
+    const date = new Date(item[0]); // item[0] is the timestamp in milliseconds
+    const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    uniqueDates.add(formattedDate);
+  }
+  return Array.from(uniqueDates);
+}
+
+async function initializeDatePicker() {
+  const dataBoard1 = await fetchHistoryData(1);
+  const dataBoard2 = await fetchHistoryData(2);
+  const dataBoard3 = await fetchHistoryData(3);
+  const dataFloodRisk = await fetchFloodRiskData();
+
+  // Combine data from all boards and flood risk data
+  const combinedData = [...dataBoard1, ...dataBoard2, ...dataBoard3, ...dataFloodRisk];
+
+  // Extract unique dates from the combined data
+  const datesWithData = extractDatesFromData(combinedData);
+
+  // Initialize the date picker with the extracted dates
+  flatpickr("#datePicker", {
+    enable: datesWithData
+  });
+}
+
+// Call the function to initialize the date picker
+initializeDatePicker();
 
 // Call the function to create the chart
 
@@ -240,6 +278,23 @@ window.onload = function () {
     historyChart.series[3].setVisible(e.target.checked, false);
     historyChart.redraw();
   });
+  document.getElementById("showChartButton").addEventListener("click", function () {
+    const datePicker = document.getElementById("datePicker");
+    const selectedDate = datePicker.value;
+    if (selectedDate) {
+      const startDate = new Date(selectedDate).getTime(); // get time in milliseconds
+      const endDate = startDate + 24 * 60 * 60 * 1000; // add 24 hours in milliseconds
+      // set the x-axis range to the selected day
+      historyChart.xAxis[0].setExtremes(startDate, endDate);
+    } else {
+      alert("Please select a date.");
+    }
+  });
+  document.getElementById("toggleDateRangeButton").addEventListener("click", function () {
+    const DateRangeButtonGroup = document.getElementById("DateRangeButtonGroup");
+    DateRangeButtonGroup.classList.toggle("d-none");
+  });
+  // Initialize the date picker with highlighted dates
 };
 
 function setTimeRange(hours) {
@@ -248,7 +303,7 @@ function setTimeRange(hours) {
   var minTime = maxTime - milliseconds;
   historyChart.xAxis[0].setExtremes(minTime, maxTime);
 }
-function setLast50Readings() {
+function setLast120Readings() {
   var allDataPoints = [];
 
   // Gather all data points from all series
@@ -262,7 +317,7 @@ function setLast50Readings() {
   });
 
   // Get the timestamp of the 50th last reading, if available
-  var minTime = allDataPoints.length >= 50 ? allDataPoints[49].x : allDataPoints[allDataPoints.length - 1].x;
+  var minTime = allDataPoints.length >= 120 ? allDataPoints[119].x : allDataPoints[allDataPoints.length - 1].x;
   var maxTime = allDataPoints[0].x;
 
   // Update the x-axis range
@@ -418,7 +473,7 @@ function objDataChanges(id) {
     } else {
       timeAgo = seconds + " seconds ago";
     }
-    document.getElementById("time-ago-" + objid).innerHTML = timeAgo;
+    document.getElementById("time-ago-" + objid).innerHTML = "Updated " + timeAgo;
     Highcharts.chart('pres' + objid, {
       chart: {
         type: 'solidgauge',
@@ -684,11 +739,11 @@ function moveColumn(id, targetColumn) {
 function getNameById(id) {
   switch (id) {
     case 1:
-      return "Tribunary River";
+      return "Toclong II St. (B)";
     case 2:
       return "E. Villanueva Ave.";
     case 3:
-      return "Toclong II St.";
+      return "Toclong II St. (A)";
     default:
       return "Unknown";
   }
@@ -703,6 +758,9 @@ function compareWaterLevelChanges(boardId) {
     var latestReading = null;
     var previousReading = null;
     var previousWaterLevelHighest = -Infinity;
+    var previousTimeHighest = -Infinity;
+    var waterLevel = null;
+    var objid;
 
     snapshot.forEach(function (childSnapshot) {
       var reading = childSnapshot.val();
@@ -728,51 +786,57 @@ function compareWaterLevelChanges(boardId) {
       var reading = childSnapshot.val();
       var objFloatId = reading.boardId;
       var objtime = reading.timestamp;
-      var objid = parseInt(objFloatId);
+      var readingobjid = parseInt(objFloatId);
 
       // Skip the latest reading
       // if (reading.timestamp !== latestTime) {
       var waterLevel = parseFloat(reading.waterlevelpressure);
 
-      if (waterLevel > previousWaterLevelHighest) {
+      if (waterLevel > previousWaterLevelHighest && (objtime * 1000) >= twentyFourHoursAgo) {
         previousWaterLevelHighest = waterLevel;
-        previousTimeHighest = reading.timestamp;
+        previousTimeHighest = objtime;
+        objid = readingobjid;
       }
-      // }
-
-      if (objid == 1) {
-        var h2Element1 = document.getElementById("h2_1");
-        if ((objtime * 1000) >= twentyFourHoursAgo) {
-          maxPressureObj1 = previousWaterLevelHighest;
-        } else if ((objtime * 1000) < twentyFourHoursAgo) {
-          maxPressureObj1 = 0;
-        }
-        h2Element1.innerHTML = "Tributary River: " + maxPressureObj1 + "cm";
-      } else if (objid == 2) {
-        var h2Element2 = document.getElementById("h2_2");
-        if ((objtime * 1000) >= twentyFourHoursAgo) {
-          maxPressureObj2 = previousWaterLevelHighest;
-        } else if ((objtime * 1000) < twentyFourHoursAgo) {
-          maxPressureObj2 = 0;
-        }
-        h2Element2.innerHTML = "E. Villanueva St.: " + maxPressureObj2 + "cm";
-      } else if (objid == 3) {
-        var h2Element3 = document.getElementById("h2_3");
-        if ((objtime * 1000) >= twentyFourHoursAgo) {
-          maxPressureObj3 = previousWaterLevelHighest;
-        } else if ((objtime * 1000) < twentyFourHoursAgo) {
-          maxPressureObj3 = 0;
-        }
-        h2Element3.innerHTML = "Toclong II St.: " + maxPressureObj3 + "cm";
-      }
-
     });
+    // console.log("changesDataRef previousWaterLevelHighest:", previousWaterLevelHighest);
+    // console.log("changesDataRef previousTimeHighest:", previousTimeHighest);
+    // console.log("changesDataRef objid:", objid);
+
+    if (objid == 1) {
+      var h2Element1 = document.getElementById("h2_1");
+      if ((previousTimeHighest * 1000) >= twentyFourHoursAgo) {
+        maxPressureObj1 = previousWaterLevelHighest;
+        h2Element1.innerHTML = "Toclong II St. (B): " + maxPressureObj1 + "cm";
+      } else if ((previousTimeHighest * 1000) < twentyFourHoursAgo) {
+        maxPressureObj1 = 0;
+        h2Element1.innerHTML = "Toclong II St. (B): " + maxPressureObj1 + "cm";
+      }
+    } else if (objid == 2) {
+      var h2Element2 = document.getElementById("h2_2");
+      if ((previousTimeHighest * 1000) >= twentyFourHoursAgo) {
+        maxPressureObj2 = previousWaterLevelHighest;
+        h2Element2.innerHTML = "E. Villanueva St.: " + maxPressureObj2 + "cm";
+      } else if ((previousTimeHighest * 1000) < twentyFourHoursAgo) {
+        maxPressureObj2 = 0;
+        h2Element2.innerHTML = "E. Villanueva St.: " + maxPressureObj2 + "cm";
+      }
+
+    } else if (objid == 3) {
+      var h2Element3 = document.getElementById("h2_3");
+      if ((previousTimeHighest * 1000) >= twentyFourHoursAgo) {
+        maxPressureObj3 = previousWaterLevelHighest;
+        h2Element3.innerHTML = "Toclong II St. (A): " + maxPressureObj3 + "cm";
+      } else if ((previousTimeHighest * 1000) < twentyFourHoursAgo) {
+        maxPressureObj3 = 0;
+        h2Element3.innerHTML = "Toclong II St. (A): " + maxPressureObj3 + "cm";
+      }
+    }
   });
 
 
 
   // Retrieve the latest 10 readings for the specified board
-  changesDataRef.orderByChild("boardId").equalTo(boardId + ".00").limitToLast(10).once('value', function (snapshot) {
+  changesDataRef.orderByChild("boardId").equalTo(boardId + ".00").limitToLast(30).once('value', function (snapshot) {
     var readings = snapshot.val();
 
     if (readings === null) {
@@ -858,13 +922,13 @@ function compareWaterLevelChanges(boardId) {
     var timeAgo = "";
 
     if (days > 0) {
-      timeAgo = days + " days ago";
+      timeAgo = days + " days";
     } else if (hours > 0) {
-      timeAgo = hours + " hours ago";
+      timeAgo = hours + " hours";
     } else if (minutes > 0) {
-      timeAgo = minutes + " minutes ago";
+      timeAgo = minutes + " minutes";
     } else {
-      timeAgo = seconds + " seconds ago";
+      timeAgo = seconds + " seconds";
     }
 
     var secondsDiffnow = Math.floor(timeDiffnow / 1000);
@@ -890,29 +954,6 @@ function compareWaterLevelChanges(boardId) {
     console.log("Time difference (Board " + boardId + "):", timeDiff, "minutes");
     console.log("Water level difference (Board " + boardId + "):", waterLevelDiff, "cm");
 
-    // // Create a Highcharts chart container
-    // var chartContainer = document.createElement("div");
-    // chartContainer.setAttribute("id", "chart_" + boardId);
-    // document.body.appendChild(chartContainer);
-
-    // // Generate the Highcharts chart
-    // Highcharts.chart("chart_" + boardId, {
-    //   title: {
-    //     text: null
-    //   },
-    //   xAxis: {
-    //     categories: ["Previous", "Latest"]
-    //   },
-    //   yAxis: {
-    //     title: {
-    //       text: "Water Level"
-    //     }
-    //   },
-    //   series: [{
-    //     name: "Water Level",
-    //     data: [previousWaterLevel, latestWaterLevel]
-    //   }]
-    // });
     var chartContainer = document.createElement("div");
     chartContainer.setAttribute("id", "chart_" + boardId);
     document.body.appendChild(chartContainer);
@@ -921,7 +962,7 @@ function compareWaterLevelChanges(boardId) {
     var chartData = [];
     snapshot.forEach(function (childSnapshot) {
       var reading = childSnapshot.val();
-      var timestamp = epochToDateTime(reading.timestamp);
+      var timestamp = reading.timestamp * 1000;
       var waterLevel = parseFloat(reading.waterlevelpressure);
       chartData.push([timestamp, waterLevel]);
     });
@@ -948,7 +989,7 @@ function compareWaterLevelChanges(boardId) {
       },
       yAxis: {
         title: {
-          text: "Water Level Pressure"
+          text: "Water Level"
         }
       },
       series: [{
@@ -1296,7 +1337,7 @@ function calculateMaxFloodRisk() {
       console.log("maxPeakFloodRisk :", maxPeakFloodRisk);
       console.log("floodPeakRiskLevel :", floodPeakRiskLevel);
 
-      var floodRiskDescription = "<hr>Current: " + floodRiskLevel + "(" + floodRiskValue + ")<br>" + timeAgonow;
+      var floodRiskDescription = "<hr>Current: " + floodRiskLevel + " (" + floodRiskValue + ")<br>" + timeAgonow;
       console.log("Flood Risk: " + floodRiskDescription);
       var floodRiskPeakDescription = floodPeakRiskLevel + "<br>(" + floodPeakRiskValue + ")";
       console.log("Flood Risk: " + floodRiskPeakDescription);
@@ -1391,14 +1432,7 @@ function calculateMaxFloodRisk() {
   });
 }
 sensorDataRef1.limitToLast(5).on('child_added', function (snapshot) {
-  createHistoricalChart();
-  compareWaterLevelChanges("1");
-  compareWaterLevelChanges("2");
-  compareWaterLevelChanges("3");
-  objDataChanges("1");
-  objDataChanges("2");
-  objDataChanges("3");
-  calculateMaxFloodRisk();
+
   var recentDataDiv = document.getElementById('recent-data');
   var obj = snapshot.val();
   var objFloatId = obj.boardId;
@@ -1417,13 +1451,13 @@ sensorDataRef1.limitToLast(5).on('child_added', function (snapshot) {
   var idText;
   switch (objid) {
     case 1:
-      idText = "Tribunary River";
+      idText = "Toclong II St. (B)";
       break;
     case 2:
       idText = "E. Villanueva Ave.";
       break;
     case 3:
-      idText = "Toclong II St.";
+      idText = "Toclong II St. (A)";
       break;
     default:
       idText = "Unknown";
@@ -1528,6 +1562,17 @@ floodRiskDataRef1.limitToLast(5).on('child_added', function (snapshot) {
   recentFloodDataDiv.style.maxHeight = '200px'; // Adjust the desired height here
   recentFloodDataDiv.style.overflowY = 'auto';
 });
+refreshDB.limitToLast(1).on('child_added', function (snapshot) {
+  createHistoricalChart();
+  // Add annotations after the chart is created
+  compareWaterLevelChanges("1");
+  compareWaterLevelChanges("2");
+  compareWaterLevelChanges("3");
+  objDataChanges("1");
+  objDataChanges("2");
+  objDataChanges("3");
+  calculateMaxFloodRisk();
+});
 // setInterval(calculateMaxFloodRisk, 10 * 60 * 1000); // Run every 10 minutes
 calculateMaxFloodRisk();
 
@@ -1553,7 +1598,7 @@ function initMap() {
 
   var map = new google.maps.Map(document.getElementById("map"), {
     center: { lat: 14.439817922996339, lng: 120.92960169120573 }, // Target coordinates
-    zoom: 17, // Zoom level
+    zoom: 17.5, // Zoom level
     styles: [{
       featureType: 'poi',
       stylers: [{ visibility: 'off' }] // Hide Points of Interest (POI) markers
@@ -1612,7 +1657,8 @@ function initMap() {
           "<br>Pressure: " + sensorData.pressure +
           "<br>Temperature: " + sensorData.temperature +
           "<br>Humidity: " + sensorData.humidity +
-          "<br>Battery Level: " + sensorData.batteryLevel + "%"
+          "<br>Battery Level: " + sensorData.batteryLevel + "%" +
+          "<br>Timestamp: " + sensorData.timestamp
       });
       infowindow.open(map, marker);
     });
@@ -1621,16 +1667,14 @@ function initMap() {
   }
 
   // Create the first sensor marker
-  var sensor1LatLng = { lat: 14.440703903499237, lng: 120.92957878388968 }; // Replace with actual sensor location
-  createSensorMarker(sensor1LatLng, "Toclong II St.", 3, 85, "green");
-
+  var sensor1LatLng = { lat: 14.439897452142532, lng: 120.92956643918936 }; // Replace with actual sensor location
+  createSensorMarker(sensor1LatLng, "Toclong II St. (A)", 3, 70, "green");
   // Create the second sensor marker
-  var sensor2LatLng = { lat: 14.438773, lng: 120.929984 }; // Replace with actual sensor location
-  createSensorMarker(sensor2LatLng, "E. Villanueva Ave.", 2, 85, "green");
-
+  var sensor2LatLng = { lat: 14.438870503357677, lng: 120.92990726413365 }; // Replace with actual sensor location
+  createSensorMarker(sensor2LatLng, "E. Villanueva Ave.", 2, 70, "green");
   // Create the third sensor marker
-  var sensor3LatLng = { lat: 14.440837, lng: 120.930466 }; // Replace with actual sensor location
-  createSensorMarker(sensor3LatLng, "Tributary River", 1, 50, "green");
+  var sensor3LatLng = { lat: 14.440703903499237, lng: 120.92957878388968 }; // Replace with actual sensor location
+  createSensorMarker(sensor3LatLng, "Toclong II St. (B)", 1, 70, "green");
 
   function updateRangeCircle(centerLatLng, radius) {
     if (rangeCircle) {
@@ -1667,7 +1711,8 @@ function initMap() {
         pressure: objpres,
         temperature: obj.temperature,
         humidity: obj.humidity,
-        batteryLevel: obj.battery
+        batteryLevel: obj.battery,
+        timestamp: epochToDateTime(objtime)
       };
 
       // Update the range circle color based on the water level for sensor 3
@@ -1713,7 +1758,8 @@ function initMap() {
         pressure: objpres,
         temperature: obj.temperature,
         humidity: obj.humidity,
-        batteryLevel: obj.battery
+        batteryLevel: obj.battery,
+        timestamp: epochToDateTime(objtime)
       };
 
       // Update the range circle color based on the water level for sensor 2
@@ -1751,7 +1797,8 @@ function initMap() {
         pressure: obj.waterlevelpressure,
         temperature: obj.temperature,
         humidity: obj.humidity,
-        batteryLevel: obj.battery
+        batteryLevel: obj.battery,
+        timestamp: epochToDateTime(objtime)
       };
 
       // Update the range circle color based on the water level for sensor 1
