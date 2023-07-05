@@ -40,328 +40,483 @@ function updateTime() {
   document.getElementById("timeSpan").innerText = dateTimeString;
 }
 
-
 // Update the time every second
 setInterval(updateTime, 1000);
-
-
 
 // Reference the specific location in your database
 var uid = 'TPxW3qcPKldbeuZkSYjGJv08PBj2';
 var dbPath = 'SensorData/' + uid.toString() + '/readings';
-var dbfloodRiskPath = 'SensorData/' + uid.toString() + '/FloodRiskData';
+var dbfloodRiskPath = 'SensorData/' + uid.toString() + '/FloodRisk  Data';
 
 var floodRiskDataRef = database.ref(dbfloodRiskPath).orderByKey();
 var boardDataRef = database.ref(dbPath).orderByKey();
 var twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
 var oneHourAgo = Date.now() - 1 * 60 * 60 * 1000;
 
-function convertToCSV(data) {
-  var csv = "";
-  var headers = Object.keys(data[0]);
+document.addEventListener("DOMContentLoaded", function () {
+  let lastKey = null;
 
-  // Append headers
-  csv += headers.join(",") + "\n";
+  function fetchBoardData(boardId, numItems) {
+    var dbPath = 'SensorData/' + uid.toString() + '/readings';
+    var boardDataRef = database.ref(dbPath);
 
-  // Append data rows
-  data.forEach(function (row) {
-    var values = headers.map(function (header) {
-      return row[header];
-    });
-    csv += values.join(",") + "\n";
-  });
+    let query = boardDataRef.orderByChild("boardId").limitToLast(numItems + 1);
 
-  return csv;
-}
-
-// Function to download CSV file
-function downloadCSV(data, filename) {
-  var csv = convertToCSV(data);
-
-  // Create a temporary link element
-  var link = document.createElement("a");
-  link.setAttribute("href", "data:text/csv;charset=utf-8," + encodeURIComponent(csv));
-  link.setAttribute("download", filename);
-
-  // Simulate click to initiate download
-  link.click();
-}
-
-function fetchHistoryData(boardId) {
-  var dbPath = 'SensorData/' + uid.toString() + '/readings';
-  var boardDataRef = database.ref(dbPath);
-
-  // Retrieve the latest 50 readings for the specified board
-  boardDataRef.orderByChild("boardId").equalTo(boardId + ".00").limitToLast(50).once('value', function (snapshot) {
-    var readings = snapshot.val();
-
-    // Check if any readings exist
-    if (readings) {
-      // Get the mastertableContainer element
-      var mastertableContainer = document.getElementById("mastertableContainer");
-
-      // Create a title element
-      var title = document.createElement("h2");
-      title.classList.add("text-center");
-      title.textContent = "";
-
-      // Create a table element with Bootstrap classes
-      var table = document.createElement("table");
-      table.classList.add("table", "table-striped", "table-hover", "table-bordered");
-
-      // Create table headers with Bootstrap classes
-      var headers = ["Timestamp", "Water Level Pressure", "Water Level", "Temperature", "Humidity", "Battery", "Reading ID", "Board ID"];
-      var headerRow = document.createElement("tr");
-
-      for (var i = 0; i < headers.length; i++) {
-        var headerCell = document.createElement("th");
-        headerCell.classList.add("text-center");
-        headerCell.textContent = headers[i];
-        headerRow.appendChild(headerCell);
-      }
-
-      table.appendChild(headerRow);
-
-      // Calculate the number of pages based on the number of readings and the limit per page
-      var numReadings = Object.keys(readings).length;
-      var limitPerPage = 10;
-      var numPages = Math.ceil(numReadings / limitPerPage);
-
-      // Set the initial page to 1
-      var currentPage = 1;
-
-      // Function to display the readings for the current page
-      function displayReadings() {
-        // Clear the table body
-        var tableBody = table.getElementsByTagName("tbody")[0];
-        if (tableBody) {
-          tableBody.innerHTML = "";
-        } else {
-          tableBody = document.createElement("tbody");
-          table.appendChild(tableBody);
-        }
-
-        // Calculate the start and end indices for the current page
-        var startIndex = (currentPage - 1) * limitPerPage;
-        var endIndex = Math.min(startIndex + limitPerPage, numReadings);
-
-        // Iterate over the readings and create table rows for the current page
-        Object.keys(readings).slice(startIndex, endIndex).forEach(function (key) {
-          var reading = readings[key];
-
-          var timestamp = epochToDateTime(reading.timestamp);
-          var waterLevelPressure = reading.waterlevelpressure;
-          var waterLevel = reading.waterlevel;
-          var temperature = reading.temperature;
-          var humidity = reading.humidity;
-          var battery = reading.battery;
-          var readingId = reading.readingId;
-          var boardId = reading.boardId;
-
-          // Create a new table row
-          var row = document.createElement("tr");
-
-          // Create table cells for each data field with Bootstrap classes
-          var timestampCell = document.createElement("td");
-          timestampCell.classList.add("text-center");
-          timestampCell.textContent = timestamp;
-          row.appendChild(timestampCell);
-
-          var waterLevelPressureCell = document.createElement("td");
-          waterLevelPressureCell.classList.add("text-center");
-          waterLevelPressureCell.textContent = waterLevelPressure;
-          row.appendChild(waterLevelPressureCell);
-
-          var waterLevelCell = document.createElement("td");
-          waterLevelCell.classList.add("text-center");
-          waterLevelCell.textContent = waterLevel;
-          row.appendChild(waterLevelCell);
-
-          var temperatureCell = document.createElement("td");
-          temperatureCell.classList.add("text-center");
-          temperatureCell.textContent = temperature;
-          row.appendChild(temperatureCell);
-
-          var humidityCell = document.createElement("td");
-          humidityCell.classList.add("text-center");
-          humidityCell.textContent = humidity;
-          row.appendChild(humidityCell);
-
-          var batteryCell = document.createElement("td");
-          batteryCell.classList.add("text-center");
-          batteryCell.textContent = battery;
-          row.appendChild(batteryCell);
-
-          var readingIdCell = document.createElement("td");
-          readingIdCell.classList.add("text-center");
-          readingIdCell.textContent = readingId;
-          row.appendChild(readingIdCell);
-
-          var boardIdCell = document.createElement("td");
-          boardIdCell.classList.add("text-center");
-          boardIdCell.textContent = boardId;
-          row.appendChild(boardIdCell);
-
-          // Append the row to the table body
-          tableBody.appendChild(row);
-        });
-      }
-
-      var pagination = document.createElement("nav");
-      pagination.setAttribute("aria-label", "Pagination");
-      pagination.innerHTML = `
-        <ul class="pagination justify-content-center">
-          <li class="page-item" id="previousBtn">
-            <a class="page-link" href="#" aria-label="Previous">
-              <span aria-hidden="true">&laquo;</span>
-            </a>
-          </li>
-        </ul>
-      `;
-
-      var paginationList = pagination.querySelector(".pagination");
-
-      // Function to handle page navigation
-      function navigateToPage(page) {
-        currentPage = page;
-        displayReadings();
-
-        // Update active state of pagination buttons
-        var pageLinks = paginationList.getElementsByClassName("page-link");
-        for (var i = 0; i < pageLinks.length; i++) {
-          if (i + 1 === page) {
-            pageLinks[i].parentElement.classList.add("active");
-          } else {
-            pageLinks[i].parentElement.classList.remove("active");
-          }
-        }
-      }
-
-      // Handle previous button click
-      var previousBtn = pagination.querySelector("#previousBtn");
-      previousBtn.addEventListener("click", function (event) {
-        event.preventDefault();
-        if (currentPage > 1) {
-          navigateToPage(currentPage - 1);
-        }
-      });
-
-      // Display the initial readings
-      displayReadings();
-
-      // Create pagination links dynamically
-      for (var i = 1; i <= numPages; i++) {
-        var pageLink = document.createElement("a");
-        pageLink.classList.add("page-link");
-        pageLink.href = "#";
-        pageLink.textContent = i;
-        pageLink.addEventListener("click", function (event) {
-          event.preventDefault();
-          navigateToPage(parseInt(this.textContent));
-        });
-
-        var pageItem = document.createElement("li");
-        pageItem.classList.add("page-item");
-        if (i === currentPage) {
-          pageItem.classList.add("active");
-        }
-        pageItem.appendChild(pageLink);
-
-        paginationList.appendChild(pageItem);
-      }
-
-      // Append the title and table to the mastertableContainer
-
-      mastertableContainer.appendChild(title);
-      mastertableContainer.appendChild(table);
-      mastertableContainer.appendChild(pagination);
-
-      var dataForCSV = Object.keys(readings).map(function (key) {
-        var reading = readings[key];
-
-        return {
-          Timestamp: reading.timestamp,
-          "Water Level Pressure": reading.waterlevelpressure,
-          "Water Level": reading.waterlevel,
-          Temperature: reading.temperature,
-          Humidity: reading.humidity,
-          Battery: reading.battery,
-          "Reading ID": reading.readingId,
-          "Board ID": reading.boardId
-        };
-      });
-
-      function exportToCSV() {
-        // Prompt the user to enter a filename
-        var filename = prompt("Enter the filename for the CSV file:", "data.csv");
-
-        // Check if a filename was provided
-        if (filename) {
-          // Download the data as a CSV file
-          downloadCSV(dataForCSV, filename);
-        }
-      }
-
-      function sortTableByTimestamp() {
-        var tableBody = document.querySelector("#tableContainer tbody");
-        var rows = Array.from(tableBody.getElementsByTagName("tr"));
-    
-        rows.sort(function (rowA, rowB) {
-          var timestampA = rowA.cells[0].textContent;
-          var timestampB = rowB.cells[0].textContent;
-    
-          return new Date(timestampA) - new Date(timestampB);
-        });
-    
-        // Append the sorted rows back to the table body
-        rows.forEach(function (row) {
-          tableBody.appendChild(row);
-        });
-      }
-
-      // Create a container for export button and pagination
-      var exportContainer = document.createElement("div");
-      exportContainer.classList.add("d-flex", "justify-content-between", "align-items-center");
-
-      // Create a button for CSV export
-      var exportButton = document.createElement("button");
-      exportButton.textContent = "Export to CSV";
-      exportButton.classList.add("btn", "btn-primary");
-      exportButton.addEventListener("click", exportToCSV);
-
-      tableContainer.appendChild(title);
-      tableContainer.appendChild(table);
-    
-      tableContainer.appendChild(title);
-      tableContainer.appendChild(table);
-    
-      // Create a button for table sorting
-      var sortButton = document.createElement("button");
-      sortButton.textContent = "Sort by Timestamp";
-      sortButton.classList.add("btn", "btn-primary", "ml-2"); // Add Bootstrap classes
-      sortButton.addEventListener("click", sortTableByTimestamp);
-    
-      // Get the pagination element
-      var pagination = mastertableContainer.querySelector("nav[aria-label='Pagination']");
-    
-      // Create a container for the export button, table sorting, and pagination
-      var actionsContainer = document.createElement("div");
-      actionsContainer.classList.add("d-flex", "justify-content-between", "align-items-center");
-    
-      // Append the export button, table sorting button, and pagination to the container
-      actionsContainer.appendChild(exportButton);
-      actionsContainer.appendChild(sortButton);
-      actionsContainer.appendChild(pagination);
-    
-      // Append the container to the mastertableContainer
-      mastertableContainer.appendChild(actionsContainer);
+    if (lastKey) {
+      query = query.endAt(boardId + ".00", lastKey);
     } else {
-      console.log("No readings found for the specified board.");
+      query = query.equalTo(boardId + ".00");
     }
+
+    query.once('value', (snapshot) => {
+      let readings = snapshot.val();
+      let html = '';
+      let keys = Object.keys(readings);
+
+      // Skip the last item (which is the first item of previous page)
+      let dataKeys = (lastKey) ? keys.slice(0, -1) : keys.slice(0);
+
+      // Update lastKey for next query
+      lastKey = keys[0];
+
+      for (let key of dataKeys) {
+        let reading = readings[key];
+        let timestamp = epochToDateTime(reading.timestamp);
+        let row = '<tr>';
+        row += '<td>' + timestamp + '</td>';
+        row += '<td>' + reading.waterlevelpressure + '</td>';
+        row += '<td>' + reading.waterlevel + '</td>';
+        row += '<td>' + reading.temperature + '</td>';
+        row += '<td>' + reading.humidity + '</td>';
+        row += '<td>' + reading.battery + '</td>';
+        row += '<td>' + reading.readingId + '</td>';
+        row += '<td>' + reading.boardId + '</td>';
+        row += '</tr>';
+        html = row + html;
+      }
+      document.getElementById('table-body').insertAdjacentHTML('beforeend', html);
+    });
+  }
+
+  // Call fetchBoardData function initially with 180 items
+  fetchBoardData(2, 180);
+
+  // Event listener for the Load More button
+  document.getElementById('load-more-btn').addEventListener('click', function () {
+    fetchBoardData(2, 180);
+  });
+
+
+  document.getElementById('download-btn').addEventListener('click', function () {
+    let csv = [];
+    let rows = document.querySelectorAll("#data-table tr");
+
+    for (let i = 0; i < rows.length; i++) {
+      let row = [], cols = rows[i].querySelectorAll("td, th");
+
+      for (let j = 0; j < cols.length; j++) {
+        row.push(cols[j].innerText);
+      }
+
+      csv.push(row.join(","));
+    }
+
+    downloadCSV(csv.join("\n"), generateFileName());
+  });
+
+  function generateFileName() {
+    let today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    return `E.Villanueva Ave. ${today}.csv`;
+  }
+
+  function downloadCSV(csv, filename) {
+    let csvFile = new Blob([csv], { type: "text/csv" });
+    let downloadLink = document.createElement("a");
+
+    downloadLink.download = filename;
+    downloadLink.href = URL.createObjectURL(csvFile);
+    downloadLink.style.display = "none";
+
+    document.body.appendChild(downloadLink);
+
+    downloadLink.click();
+  }
+
+});
+
+// Call the function with the boardId you want to fetch
+
+document.getElementById("csvFileInput").addEventListener("change", handleFileUpload);
+
+function handleFileUpload(event) {
+  const file = event.target.files[0];
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const csvData = e.target.result;
+    const parsedData = parseCsvData(csvData);
+    console.log("csvData: ", parsedData);
+    generateReport(parsedData);
+    generateChart(parsedData);
+    generateSummary(parsedData)
+  };
+  reader.readAsText(file);
+}
+function parseCsvData(data) {
+  const rows = data.split("\n");
+  const result = [];
+  const headers = rows[0].split(",");
+
+  for (let i = 1; i < rows.length; i++) {
+    const obj = {};
+    const currentRow = rows[i].split(",");
+    for (let j = 0; j < headers.length; j++) {
+      if (headers[j] === "Timestamp") {
+        obj[headers[j]] = currentRow[j]; // Preserve timestamp as a string
+      } else if (isNaN(parseFloat(currentRow[j]))) {
+        obj[headers[j]] = currentRow[j];
+      } else {
+        obj[headers[j]] = parseFloat(currentRow[j]);
+      }
+    }
+    result.push(obj);
+  }
+  return result;
+}
+function generateReport(data) {
+  const reportContainer = document.getElementById('report-container');
+  reportContainer.innerHTML = ''; // Clear previous report
+
+  const dates = [...new Set(data.map(row => row.Timestamp.split(' ')[0]))]; // Get unique dates
+
+  dates.forEach(date => {
+    const dateData = data.filter(row => row.Timestamp.startsWith(date));
+
+    // Section for Minimum, Maximum, and Average values
+    const minMaxAvgSection = document.createElement('div');
+    minMaxAvgSection.classList.add('accordion-item');
+    const modifiedDate = date.replace(/\//g, '-');
+    const minMaxAvgHeader = document.createElement('h2');
+    minMaxAvgHeader.classList.add('accordion-header');
+    minMaxAvgHeader.innerHTML = `
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-${modifiedDate}" aria-expanded="false" aria-controls="collapse-${modifiedDate}">
+        Minimum, Maximum, and Average values for ${modifiedDate}
+      </button>
+    `;
+
+    const waterLevelPressure = dateData.map(row => row["Water Level Pressure"]);
+    const temperature = dateData.map(row => row.Temperature);
+    const humidity = dateData.map(row => row.Humidity);
+    
+    const minWaterLevelPressure = waterLevelPressure.length > 0 ? Math.min(...waterLevelPressure) : 'No data';
+    const maxWaterLevelPressure = waterLevelPressure.length > 0 ? Math.max(...waterLevelPressure) : 'No data';
+    const avgWaterLevelPressure = waterLevelPressure.length > 0 ? (waterLevelPressure.reduce((sum, value) => sum + value, 0) / waterLevelPressure.length).toFixed(2) : 'No data';
+    
+    const validTemperatures = temperature.filter(value => !isNaN(value));
+    const minTemperature = validTemperatures.length > 0 ? Math.min(...validTemperatures) : 'No data';
+    const maxTemperature = validTemperatures.length > 0 ? Math.max(...validTemperatures) : 'No data';
+    const avgTemperature = validTemperatures.length > 0 ? (validTemperatures.reduce((sum, value) => sum + value, 0) / validTemperatures.length).toFixed(2) : 'No data';
+    
+    const validHumidity = humidity.filter(value => !isNaN(value));
+    const minHumidity = validHumidity.length > 0 ? Math.min(...validHumidity) : 'No data';
+    const maxHumidity = validHumidity.length > 0 ? Math.max(...validHumidity) : 'No data';
+    const avgHumidity = validHumidity.length > 0 ? (validHumidity.reduce((sum, value) => sum + value, 0) / validHumidity.length).toFixed(2) : 'No data';
+    
+
+    const minMaxAvgContent = document.createElement('div');
+    minMaxAvgContent.id = `collapse-${modifiedDate}`;
+    minMaxAvgContent.classList.add('accordion-collapse', 'collapse');
+    minMaxAvgContent.setAttribute('aria-labelledby', `heading-${modifiedDate}`);
+    minMaxAvgContent.setAttribute('data-bs-parent', '#report-container');
+
+    const minMaxAvgTable = document.createElement('table');
+    minMaxAvgTable.classList.add('table');
+    minMaxAvgTable.innerHTML = `
+    <thead>
+      <tr>
+        <th>Variable</th>
+        <th>Minimum</th>
+        <th>Maximum</th>
+        <th>Average</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Water Level</td>
+        <td>${minWaterLevelPressure} cm</td>
+        <td>${maxWaterLevelPressure} cm</td>
+        <td>${avgWaterLevelPressure} cm</td>
+      </tr>
+      <tr>
+        <td>Temperature</td>
+        <td>${minTemperature} C</td>
+        <td>${maxTemperature} C</td>
+        <td>${avgTemperature} C</td>
+      </tr>
+      <tr>
+        <td>Humidity</td>
+        <td>${minHumidity} %</td>
+        <td>${maxHumidity} %</td>
+        <td>${avgHumidity} %</td>
+      </tr>
+    </tbody>
+  `;
+
+    minMaxAvgContent.appendChild(minMaxAvgTable);
+    minMaxAvgSection.appendChild(minMaxAvgHeader);
+    minMaxAvgSection.appendChild(minMaxAvgContent);
+
+    // Section for Water Level Pressure at specific times
+    const waterLevelSection = document.createElement('div');
+    waterLevelSection.classList.add('accordion-item');
+
+    const waterLevelHeader = document.createElement('h2');
+    waterLevelHeader.classList.add('accordion-header');
+    waterLevelHeader.innerHTML = `
+      <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-waterLevel-${modifiedDate}" aria-expanded="false" aria-controls="collapse-waterLevel-${modifiedDate}">
+        Water Level at specific times on ${modifiedDate}
+      </button>
+    `;
+
+    const waterLevelContent = document.createElement('div');
+    waterLevelContent.id = `collapse-waterLevel-${modifiedDate}`;
+    waterLevelContent.classList.add('accordion-collapse', 'collapse');
+    waterLevelContent.setAttribute('aria-labelledby', `heading-waterLevel-${modifiedDate}`);
+    waterLevelContent.setAttribute('data-bs-parent', '#report-container');
+
+    const timeRanges = [
+      { label: "4am", start: "04", end: "04" },
+      { label: "8am", start: "08", end: "08" },
+      { label: "12pm", start: "12", end: "12" },
+      { label: "4pm", start: "16", end: "16" },
+      { label: "8pm", start: "20", end: "20" },
+      { label: "10pm", start: "22", end: "22" },
+      { label: "12am", start: "00", end: "00" },
+    ];
+
+    const timeRows = timeRanges.map(range => `
+      <tr>
+        <td>${range.label}</td>
+        <td>${getMaxWaterLevel(dateData, range.start, range.end)} cm</td>
+        <td>${getAvgWaterLevel(dateData, range.start, range.end)} cm</td>
+      </tr>
+    `).join('');
+
+    const waterLevelTable = document.createElement('table');
+    waterLevelTable.classList.add('table');
+    waterLevelTable.innerHTML = `
+      <thead>
+        <tr>
+          <th>Time</th>
+          <th>Maximum Water Level</th>
+          <th>Average Water Level</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${timeRows}
+      </tbody>
+    `;
+
+
+    waterLevelContent.appendChild(waterLevelTable);
+    waterLevelSection.appendChild(waterLevelHeader);
+    waterLevelSection.appendChild(waterLevelContent);
+
+    reportContainer.appendChild(minMaxAvgSection);
+    reportContainer.appendChild(waterLevelSection);
   });
 }
 
+function getMaxWaterLevel(data, time) {
+  const filteredData = data.filter(row => row.Timestamp.includes(time));
+  const validData = filteredData.filter(row => !isNaN(row["Water Level Pressure"]));
+  
+  if (validData.length === 0) {
+    return 'No data';
+  }
+  
+  return Math.max(...validData.map(row => row["Water Level Pressure"]));
+}
+
+function getAvgWaterLevel(data, time) {
+  const filteredData = data.filter(row => row.Timestamp.includes(time));
+  const validData = filteredData.filter(row => !isNaN(row["Water Level Pressure"]));
+  
+  if (validData.length === 0) {
+    return 'No data';
+  }
+
+  return (validData.reduce((sum, row) => sum + row["Water Level Pressure"], 0) / validData.length).toFixed(2);
+}
+
+function generateSummary(data) {
+  const summaryContainer = document.getElementById('summary-container');
+  summaryContainer.innerHTML = ''; // Clear previous summary
+
+  const dates = [...new Set(data.map(row => row.Timestamp.split(' ')[0]))]; // Get unique dates
+
+  dates.forEach(date => {
+    const dateData = data.filter(row => row.Timestamp.startsWith(date));
+
+    // Summary for Minimum, Maximum, and Average values
+    const waterLevelPressure = dateData.map(row => row["Water Level Pressure"]);
+    const temperature = dateData.map(row => row.Temperature);
+    const humidity = dateData.map(row => row.Humidity);
+
+    const minWaterLevelPressure = waterLevelPressure.length > 0 ? Math.min(...waterLevelPressure) : 'No data';
+    const maxWaterLevelPressure = waterLevelPressure.length > 0 ? Math.max(...waterLevelPressure) : 'No data';
+    const avgWaterLevelPressure = waterLevelPressure.length > 0 ? (waterLevelPressure.reduce((sum, value) => sum + value, 0) / waterLevelPressure.length).toFixed(2) : 'No data';
+
+    const validTemperatures = temperature.filter(value => !isNaN(value));
+    const minTemperature = validTemperatures.length > 0 ? Math.min(...validTemperatures) : 'No data';
+    const maxTemperature = validTemperatures.length > 0 ? Math.max(...validTemperatures) : 'No data';
+    const avgTemperature = validTemperatures.length > 0 ? (validTemperatures.reduce((sum, value) => sum + value, 0) / validTemperatures.length).toFixed(2) : 'No data';
+
+    const validHumidity = humidity.filter(value => !isNaN(value));
+    const minHumidity = validHumidity.length > 0 ? Math.min(...validHumidity) : 'No data';
+    const maxHumidity = validHumidity.length > 0 ? Math.max(...validHumidity) : 'No data';
+    const avgHumidity = validHumidity.length > 0 ? (validHumidity.reduce((sum, value) => sum + value, 0) / validHumidity.length).toFixed(2) : 'No data';
+    const timeRanges = [
+      { label: "4am", start: "04", end: "04" },
+      { label: "8am", start: "08", end: "08" },
+      { label: "12pm", start: "12", end: "12" },
+      { label: "4pm", start: "16", end: "16" },
+      { label: "8pm", start: "20", end: "20" },
+      { label: "10pm", start: "22", end: "22" },
+      { label: "12am", start: "00", end: "00" },
+    ];
+
+    const waterLevelSummarySentences = timeRanges.map(range => {
+      const maxWaterLevel = getMaxWaterLevel(dateData, range.start, range.end);
+      const avgWaterLevel = getAvgWaterLevel(dateData, range.start, range.end);
+      return `At ${range.label}, the maximum water level was ${maxWaterLevel} cm and the average water level was ${avgWaterLevel} cm.`;
+    });
+    
+    const cardContainer = document.createElement('div');
+    cardContainer.classList.add('card');
+    
+    const cardHeader = document.createElement('div');
+    cardHeader.classList.add('card-header');
+    cardHeader.textContent = 'Summary of Data on ' + date.replaceAll('/', '-').replaceAll(' ', 'T') + '';
+    
+    const cardBody = document.createElement('div');
+    cardBody.classList.add('card-body');
+    
+    const summarySentence = `The water level ranged from ${minWaterLevelPressure} cm to ${maxWaterLevelPressure} cm, with an average of ${avgWaterLevelPressure} cm. ${waterLevelSummarySentences.join(' ')}`;
+    const summarySentence1 = `Meanwhile, The water level ranged from ${minWaterLevelPressure} cm to ${maxWaterLevelPressure} cm on that date, with an average of ${avgWaterLevelPressure} cm. The temperature ranged from ${minTemperature}°C to ${maxTemperature}°C, with an average of ${avgTemperature}°C. The humidity ranged from ${minHumidity}% to ${maxHumidity}%, with an average of ${avgHumidity}%.`;
+    
+    const summaryParagraph = document.createElement('p');
+    summaryParagraph.textContent = summarySentence;
+    
+    const summaryParagraph1 = document.createElement('p');
+    summaryParagraph1.textContent = summarySentence1;
+    
+    cardBody.appendChild(summaryParagraph);
+    cardBody.appendChild(summaryParagraph1);
+    
+    cardContainer.appendChild(cardHeader);
+    cardContainer.appendChild(cardBody);
+    
+    summaryContainer.appendChild(cardContainer);
+  });
+}
+
+function generateChart(data) {
+  // Extracting data arrays for each series
+  const timestamps = data.map(row => row.Timestamp);
+  const batteries = data.map(row => parseFloat(row.Battery));
+  const waterLevelPressures = data.map(row => parseFloat(row["Water Level Pressure"]));
+  const humidities = data.map(row => parseFloat(row.Humidity));
+  const temperatures = data.map(row => parseFloat(row.Temperature));
 
 
-
-fetchHistoryData("2");
+  Highcharts.chart('chart-container', {
+    chart: {
+      zoomType: 'xy'
+    },
+    title: {
+      text: 'Sensor Data'
+    },
+    xAxis: {
+      categories: timestamps,
+      crosshair: true
+    },
+    yAxis: [{ // Primary yAxis
+      labels: {
+        format: '{value} C',
+        style: {
+          color: Highcharts.getOptions().colors[2]
+        }
+      },
+      title: {
+        text: 'Temperature',
+        style: {
+          color: Highcharts.getOptions().colors[2]
+        }
+      },
+      opposite: true
+    }, { // Secondary yAxis
+      gridLineWidth: 0,
+      title: {
+        text: 'Battery',
+        style: {
+          color: Highcharts.getOptions().colors[0]
+        }
+      },
+      labels: {
+        format: '{value} %',
+        style: {
+          color: Highcharts.getOptions().colors[0]
+        }
+      }
+    }, { // Tertiary yAxis
+      gridLineWidth: 1,
+      title: {
+        text: 'Water Level',
+        style: {
+          color: Highcharts.getOptions().colors[1]
+        }
+      },
+      labels: {
+        format: '{value} cm',
+        style: {
+          color: Highcharts.getOptions().colors[1]
+        }
+      },
+      opposite: true
+    }],
+    tooltip: {
+      shared: true
+    },
+    series: [{
+      name: 'Battery',
+      type: 'column',
+      yAxis: 1,
+      data: batteries,
+      tooltip: {
+        valueSuffix: ' %'
+      }
+    }, {
+      name: 'Water Level',
+      type: 'spline',
+      yAxis: 2,
+      data: waterLevelPressures,
+      tooltip: {
+        valueSuffix: ' cm'
+      }
+    }, {
+      name: 'Temperature',
+      type: 'spline',
+      data: temperatures,
+      tooltip: {
+        valueSuffix: ' C'
+      }
+    }, {
+      name: 'Humidity',
+      type: 'spline',
+      data: humidities,
+      tooltip: {
+        valueSuffix: ' %'
+      }
+    }]
+  });
+} 
